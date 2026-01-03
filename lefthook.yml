@@ -1,0 +1,40 @@
+# Lefthook Git Hooks Configuration
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    biome-format:
+      glob: "*.{js,jsx,ts,tsx,json}"
+      run: npx biome check --write --staged --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+
+    biome-lint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: npx biome lint --staged --no-errors-on-unmatched {staged_files}
+
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: npx tsc --noEmit
+
+    eslint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: npx eslint --max-warnings=0 --no-warn-ignored {staged_files}
+
+    cspell:
+      glob: "*.{js,jsx,ts,tsx,md,json}"
+      run: npx cspell --no-progress --no-summary {staged_files}
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: npx tsc --noEmit
+
+    knip:
+      run: npx knip
