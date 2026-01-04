@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   KOL_CONTENT_TYPES,
+  KOL_ENGAGEMENT_OPTIONS,
   KOL_FOLLOWER_OPTIONS,
   KOL_PLATFORMS,
   KOL_PRICE_OPTIONS,
@@ -26,6 +27,8 @@ export interface KolFormData {
   contentTypes: string[];
   contentTypesOther: string;
   platformLinks: PlatformLink[];
+  totalFollowers: string;
+  engagementRate: string;
   bio: string;
   priceRange: string;
 }
@@ -46,6 +49,8 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
     contentTypes: [],
     contentTypesOther: "",
     platformLinks: [{ platform: "", url: "", followers: "" }],
+    totalFollowers: "",
+    engagementRate: "",
     bio: "",
     priceRange: "",
   });
@@ -69,6 +74,10 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
     if (!hasValidPlatform)
       newErrors.platformLinks = "Vui lòng thêm ít nhất 1 kênh hoạt động";
 
+    if (!formData.totalFollowers)
+      newErrors.totalFollowers = "Vui lòng chọn tổng followers";
+    if (!formData.engagementRate)
+      newErrors.engagementRate = "Vui lòng chọn tỷ lệ tương tác";
     if (!formData.priceRange) newErrors.priceRange = "Vui lòng chọn mức giá";
 
     setErrors(newErrors);
@@ -168,6 +177,32 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         required
         error={errors.platformLinks}
       />
+
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Tổng followers"
+          name="totalFollowers"
+          value={formData.totalFollowers}
+          onChange={(v) => {
+            setFormData({ ...formData, totalFollowers: v });
+          }}
+          options={KOL_FOLLOWER_OPTIONS}
+          required
+          error={errors.totalFollowers}
+        />
+
+        <SelectField
+          label="Tỷ lệ tương tác"
+          name="engagementRate"
+          value={formData.engagementRate}
+          onChange={(v) => {
+            setFormData({ ...formData, engagementRate: v });
+          }}
+          options={KOL_ENGAGEMENT_OPTIONS}
+          required
+          error={errors.engagementRate}
+        />
+      </div>
 
       <div className="mb-4">
         <label

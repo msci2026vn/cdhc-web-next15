@@ -26,6 +26,7 @@ export interface KocFormData {
   reviewCategories: string[];
   reviewCategoriesOther: string;
   platformLinks: PlatformLink[];
+  totalFollowers: string;
   reviewCount: string;
   bio: string;
   priceRange: string;
@@ -46,6 +47,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
     reviewCategories: [],
     reviewCategoriesOther: "",
     platformLinks: [{ platform: "", url: "", followers: "" }],
+    totalFollowers: "",
     reviewCount: "",
     bio: "",
     priceRange: "",
@@ -70,6 +72,8 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
     if (!hasValidPlatform)
       newErrors.platformLinks = "Vui lòng thêm ít nhất 1 kênh hoạt động";
 
+    if (!formData.totalFollowers)
+      newErrors.totalFollowers = "Vui lòng chọn tổng followers";
     if (!formData.reviewCount)
       newErrors.reviewCount = "Vui lòng chọn số bài review";
     if (!formData.priceRange) newErrors.priceRange = "Vui lòng chọn mức giá";
@@ -162,17 +166,31 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         error={errors.platformLinks}
       />
 
-      <SelectField
-        label="Số bài review"
-        name="reviewCount"
-        value={formData.reviewCount}
-        onChange={(v) => {
-          setFormData({ ...formData, reviewCount: v });
-        }}
-        options={KOC_REVIEW_COUNT_OPTIONS}
-        required
-        error={errors.reviewCount}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Tổng followers"
+          name="totalFollowers"
+          value={formData.totalFollowers}
+          onChange={(v) => {
+            setFormData({ ...formData, totalFollowers: v });
+          }}
+          options={KOC_FOLLOWER_OPTIONS}
+          required
+          error={errors.totalFollowers}
+        />
+
+        <SelectField
+          label="Số bài review"
+          name="reviewCount"
+          value={formData.reviewCount}
+          onChange={(v) => {
+            setFormData({ ...formData, reviewCount: v });
+          }}
+          options={KOC_REVIEW_COUNT_OPTIONS}
+          required
+          error={errors.reviewCount}
+        />
+      </div>
 
       <div className="mb-4">
         <label
