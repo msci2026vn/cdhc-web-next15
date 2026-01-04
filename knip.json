@@ -1,22 +1,18 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": [
-    "src/app/**/*.{ts,tsx}",
-    "src/app/**/page.tsx",
-    "src/app/**/layout.tsx"
-  ],
-  "project": ["src/**/*.{ts,tsx}"],
+  "entry": ["app/**/*.{ts,tsx}", "modules/**/*.{ts,tsx}"],
+  "project": ["app/**/*.{ts,tsx}", "modules/**/*.{ts,tsx}"],
   "ignore": ["**/*.d.ts"],
-  "ignoreDependencies": ["tailwindcss", "postcss-load-config"],
+  "ignoreDependencies": ["tailwindcss"],
   "next": {
     "entry": [
       "next.config.{js,ts,mjs}",
-      "src/app/**/page.tsx",
-      "src/app/**/layout.tsx",
-      "src/app/**/loading.tsx",
-      "src/app/**/error.tsx",
-      "src/app/**/not-found.tsx",
-      "src/middleware.ts"
+      "app/**/page.tsx",
+      "app/**/layout.tsx",
+      "app/**/loading.tsx",
+      "app/**/error.tsx",
+      "app/**/not-found.tsx",
+      "middleware.ts"
     ]
   }
 }

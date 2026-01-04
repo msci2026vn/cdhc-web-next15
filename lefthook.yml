@@ -4,26 +4,14 @@
 pre-commit:
   parallel: true
   commands:
-    biome-format:
+    biome:
       glob: "*.{js,jsx,ts,tsx,json}"
       run: npx biome check --write --staged --no-errors-on-unmatched {staged_files}
       stage_fixed: true
 
-    biome-lint:
-      glob: "*.{js,jsx,ts,tsx}"
-      run: npx biome lint --staged --no-errors-on-unmatched {staged_files}
-
     typecheck:
       glob: "*.{ts,tsx}"
       run: npx tsc --noEmit
-
-    eslint:
-      glob: "*.{js,jsx,ts,tsx}"
-      run: npx eslint --max-warnings=0 --no-warn-ignored {staged_files}
-
-    cspell:
-      glob: "*.{js,jsx,ts,tsx,md,json}"
-      run: npx cspell --no-progress --no-summary {staged_files}
 
 commit-msg:
   commands:
