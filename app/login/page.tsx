@@ -339,6 +339,8 @@ export default function LoginPage() {
       if (data.accessToken && data.user) {
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("user", JSON.stringify(data.user));
+        // Lưu profile data để hiển thị ở trang pending
+        localStorage.setItem("profile", JSON.stringify(profileData));
 
         if (data.user.status === "pending") {
           router.push("/pending");
