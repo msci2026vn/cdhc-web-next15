@@ -21,7 +21,14 @@
     "vcs",
     "bunx",
     "Zalo",
-    "HTX"
+    "HTX",
+    "kol",
+    "koc",
+    "KOL",
+    "KOC",
+    "TNHH",
+    "PGS",
+    "pgs"
   ],
   "ignorePaths": [
     "node_modules/**",

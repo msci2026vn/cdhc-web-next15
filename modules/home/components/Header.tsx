@@ -75,20 +75,10 @@ export function Header() {
             <div className="hidden md:flex items-center gap-3">
               <Link
                 href="/login"
-                className={`px-5 py-2.5 text-sm font-semibold rounded-full border-2 transition-all ${
-                  isScrolled
-                    ? "border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                    : "border-white/50 text-white hover:bg-white hover:text-green-700"
-                }`}
-              >
-                Đăng Nhập
-              </Link>
-              <a
-                href="#download"
                 className="px-5 py-2.5 text-sm font-semibold rounded-full gradient-primary text-white hover:shadow-lg transition-all"
               >
-                Tải Miễn Phí
-              </a>
+                Đăng nhập
+              </Link>
             </div>
 
             {/* Mobile Toggle */}
@@ -144,16 +134,10 @@ export function Header() {
           <div className="flex flex-col gap-3 mt-4 pt-4 border-t">
             <Link
               href="/login"
-              className="w-full py-3 text-center font-semibold text-green-600 border-2 border-green-600 rounded-full"
-            >
-              Đăng Nhập
-            </Link>
-            <a
-              href="#download"
               className="w-full py-3 text-center font-semibold text-white gradient-primary rounded-full"
             >
-              Tải Miễn Phí
-            </a>
+              Đăng nhập
+            </Link>
           </div>
         </nav>
       </div>

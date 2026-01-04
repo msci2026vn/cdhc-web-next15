@@ -12,6 +12,7 @@ export default tseslint.config(
       ".next/**",
       "node_modules/**",
       "public/**",
+      "out/**",
       "*.config.js",
       "*.config.mjs",
     ],
@@ -85,6 +86,7 @@ export default tseslint.config(
       // SonarJS adjustments
       "sonarjs/cognitive-complexity": ["warn", 15],
       "sonarjs/no-duplicate-string": ["warn", { threshold: 3 }],
+      "sonarjs/no-nested-conditional": "off",
     },
   }
 );
