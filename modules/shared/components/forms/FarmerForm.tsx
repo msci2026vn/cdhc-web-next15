@@ -10,22 +10,26 @@ import {
 import {
   LocationSelect,
   MultiSelect,
+  MultiSelectWithOther,
   RadioField,
-  SelectField,
+  SelectWithOther,
   TextField,
 } from "../ui";
 
 export interface FarmerFormData {
   fullName: string;
   phone: string;
+  birthDate: string;
   provinceCode: string;
   wardCode: string;
   address: string;
   farmSize: string;
   farmType: string[];
   mainProducts: string[];
+  mainProductsOther: string;
   hasCertificate: string;
   certificateType: string;
+  certificateTypeOther: string;
 }
 
 interface FarmerFormProps {
@@ -37,14 +41,17 @@ export function FarmerForm({ onSubmit, isLoading = false }: FarmerFormProps) {
   const [formData, setFormData] = useState<FarmerFormData>({
     fullName: "",
     phone: "",
+    birthDate: "",
     provinceCode: "",
     wardCode: "",
     address: "",
     farmSize: "",
     farmType: [],
     mainProducts: [],
+    mainProductsOther: "",
     hasCertificate: "",
     certificateType: "",
+    certificateTypeOther: "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof FarmerFormData, string>>
@@ -104,6 +111,16 @@ export function FarmerForm({ onSubmit, isLoading = false }: FarmerFormProps) {
         error={errors.phone}
       />
 
+      <TextField
+        label="Ngày sinh"
+        name="birthDate"
+        type="date"
+        value={formData.birthDate}
+        onChange={(v) => {
+          setFormData({ ...formData, birthDate: v });
+        }}
+      />
+
       <LocationSelect
         provinceCode={formData.provinceCode}
         wardCode={formData.wardCode}
@@ -127,13 +144,15 @@ export function FarmerForm({ onSubmit, isLoading = false }: FarmerFormProps) {
         placeholder="Số nhà, thôn/ấp..."
       />
 
-      <SelectField
+      <SelectWithOther
         label="Quy mô canh tác"
         name="farmSize"
         value={formData.farmSize}
+        otherValue=""
         onChange={(v) => {
           setFormData({ ...formData, farmSize: v });
         }}
+        onOtherChange={() => {}}
         options={FARM_SIZE_OPTIONS}
         required
         error={errors.farmSize}
@@ -151,12 +170,16 @@ export function FarmerForm({ onSubmit, isLoading = false }: FarmerFormProps) {
         error={errors.farmType}
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Sản phẩm chính"
         name="mainProducts"
         value={formData.mainProducts}
+        otherValue={formData.mainProductsOther}
         onChange={(v) => {
           setFormData({ ...formData, mainProducts: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, mainProductsOther: v });
         }}
         options={FARMER_PRODUCTS}
         required
@@ -173,6 +196,8 @@ export function FarmerForm({ onSubmit, isLoading = false }: FarmerFormProps) {
             ...formData,
             hasCertificate: v,
             certificateType: v === "no" ? "" : formData.certificateType,
+            certificateTypeOther:
+              v === "no" ? "" : formData.certificateTypeOther,
           });
         }}
         options={[
@@ -184,12 +209,16 @@ export function FarmerForm({ onSubmit, isLoading = false }: FarmerFormProps) {
       />
 
       {formData.hasCertificate === "yes" && (
-        <SelectField
+        <SelectWithOther
           label="Loại chứng nhận"
           name="certificateType"
           value={formData.certificateType}
+          otherValue={formData.certificateTypeOther}
           onChange={(v) => {
             setFormData({ ...formData, certificateType: v });
+          }}
+          onOtherChange={(v) => {
+            setFormData({ ...formData, certificateTypeOther: v });
           }}
           options={CERTIFICATE_TYPES}
           required

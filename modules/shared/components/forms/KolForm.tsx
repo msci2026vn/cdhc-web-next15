@@ -3,25 +3,30 @@
 import { useState } from "react";
 import {
   KOL_CONTENT_TYPES,
-  KOL_ENGAGEMENT_OPTIONS,
   KOL_FOLLOWER_OPTIONS,
   KOL_PLATFORMS,
   KOL_PRICE_OPTIONS,
 } from "../../data/form-options";
-import { LocationSelect, MultiSelect, SelectField, TextField } from "../ui";
+import type { PlatformLink } from "../ui";
+import {
+  LocationSelect,
+  MultiSelectWithOther,
+  PlatformLinks,
+  SelectField,
+  TextField,
+} from "../ui";
 
 export interface KolFormData {
   fullName: string;
   stageName: string;
   phone: string;
+  birthDate: string;
   provinceCode: string;
   wardCode: string;
   contentTypes: string[];
-  platforms: string[];
-  totalFollowers: string;
-  engagementRate: string;
+  contentTypesOther: string;
+  platformLinks: PlatformLink[];
   bio: string;
-  mainPlatformUrl: string;
   priceRange: string;
 }
 
@@ -35,14 +40,13 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
     fullName: "",
     stageName: "",
     phone: "",
+    birthDate: "",
     provinceCode: "",
     wardCode: "",
     contentTypes: [],
-    platforms: [],
-    totalFollowers: "",
-    engagementRate: "",
+    contentTypesOther: "",
+    platformLinks: [{ platform: "", url: "", followers: "" }],
     bio: "",
-    mainPlatformUrl: "",
     priceRange: "",
   });
   const [errors, setErrors] = useState<
@@ -58,14 +62,13 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
       newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
     if (formData.contentTypes.length === 0)
       newErrors.contentTypes = "Vui lòng chọn ít nhất 1 loại nội dung";
-    if (formData.platforms.length === 0)
-      newErrors.platforms = "Vui lòng chọn ít nhất 1 nền tảng";
-    if (!formData.totalFollowers)
-      newErrors.totalFollowers = "Vui lòng chọn tổng số followers";
-    if (!formData.engagementRate)
-      newErrors.engagementRate = "Vui lòng chọn tỷ lệ tương tác";
-    if (!formData.mainPlatformUrl)
-      newErrors.mainPlatformUrl = "Vui lòng nhập link kênh chính";
+
+    const hasValidPlatform = formData.platformLinks.some(
+      (link) => link.platform && link.url && link.followers
+    );
+    if (!hasValidPlatform)
+      newErrors.platformLinks = "Vui lòng thêm ít nhất 1 kênh hoạt động";
+
     if (!formData.priceRange) newErrors.priceRange = "Vui lòng chọn mức giá";
 
     setErrors(newErrors);
@@ -115,6 +118,16 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         error={errors.phone}
       />
 
+      <TextField
+        label="Ngày sinh"
+        name="birthDate"
+        type="date"
+        value={formData.birthDate}
+        onChange={(v) => {
+          setFormData({ ...formData, birthDate: v });
+        }}
+      />
+
       <LocationSelect
         provinceCode={formData.provinceCode}
         wardCode={formData.wardCode}
@@ -128,55 +141,33 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         error={errors.provinceCode}
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Loại nội dung"
         name="contentTypes"
         value={formData.contentTypes}
+        otherValue={formData.contentTypesOther}
         onChange={(v) => {
           setFormData({ ...formData, contentTypes: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, contentTypesOther: v });
         }}
         options={KOL_CONTENT_TYPES}
         required
         error={errors.contentTypes}
       />
 
-      <MultiSelect
-        label="Nền tảng hoạt động"
-        name="platforms"
-        value={formData.platforms}
+      <PlatformLinks
+        label="Kênh hoạt động"
+        value={formData.platformLinks}
         onChange={(v) => {
-          setFormData({ ...formData, platforms: v });
+          setFormData({ ...formData, platformLinks: v });
         }}
-        options={KOL_PLATFORMS}
+        platformOptions={KOL_PLATFORMS}
+        followerOptions={KOL_FOLLOWER_OPTIONS}
         required
-        error={errors.platforms}
+        error={errors.platformLinks}
       />
-
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
-          label="Tổng số followers"
-          name="totalFollowers"
-          value={formData.totalFollowers}
-          onChange={(v) => {
-            setFormData({ ...formData, totalFollowers: v });
-          }}
-          options={KOL_FOLLOWER_OPTIONS}
-          required
-          error={errors.totalFollowers}
-        />
-
-        <SelectField
-          label="Tỷ lệ tương tác"
-          name="engagementRate"
-          value={formData.engagementRate}
-          onChange={(v) => {
-            setFormData({ ...formData, engagementRate: v });
-          }}
-          options={KOL_ENGAGEMENT_OPTIONS}
-          required
-          error={errors.engagementRate}
-        />
-      </div>
 
       <div className="mb-4">
         <label
@@ -195,19 +186,6 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
           className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-colors focus:outline-none focus:border-green-500 resize-none"
         />
       </div>
-
-      <TextField
-        label="Link kênh chính"
-        name="mainPlatformUrl"
-        type="url"
-        value={formData.mainPlatformUrl}
-        onChange={(v) => {
-          setFormData({ ...formData, mainPlatformUrl: v });
-        }}
-        placeholder="https://facebook.com/yourpage"
-        required
-        error={errors.mainPlatformUrl}
-      />
 
       <SelectField
         label="Mức giá hợp tác"

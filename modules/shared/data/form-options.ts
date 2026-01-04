@@ -47,6 +47,7 @@ export const COMMUNITY_INTERESTS = [
   { value: "processed", label: "Thực phẩm chế biến" },
   { value: "beverages", label: "Đồ uống" },
   { value: "cosmetics", label: "Mỹ phẩm hữu cơ" },
+  { value: "other", label: "Khác" },
 ];
 
 // ===== BUSINESS OPTIONS =====
@@ -58,6 +59,7 @@ export const BUSINESS_TYPES = [
   { value: "retail", label: "Bán lẻ" },
   { value: "production", label: "Sản xuất" },
   { value: "logistics", label: "Logistics" },
+  { value: "other", label: "Khác" },
 ];
 
 export const CONTACT_POSITION_OPTIONS = [
@@ -87,6 +89,7 @@ export const BUSINESS_PRODUCTS = [
   { value: "spices", label: "Gia vị" },
   { value: "beverages", label: "Đồ uống" },
   { value: "processed", label: "Thực phẩm chế biến" },
+  { value: "other", label: "Khác" },
 ];
 
 // ===== COOP OPTIONS =====
@@ -145,6 +148,7 @@ export const COOP_PRODUCTS = [
   { value: "seafood", label: "Thủy sản" },
   { value: "cattle", label: "Gia súc" },
   { value: "poultry", label: "Gia cầm" },
+  { value: "other", label: "Khác" },
 ];
 
 export const COOP_CERTIFICATE_TYPES = [
@@ -185,6 +189,7 @@ export const SHOP_PRODUCT_CATEGORIES = [
   { value: "spices", label: "Gia vị" },
   { value: "beverages", label: "Đồ uống" },
   { value: "cosmetics", label: "Mỹ phẩm" },
+  { value: "other", label: "Khác" },
 ];
 
 // ===== EXPERT OPTIONS =====
@@ -198,6 +203,7 @@ export const EXPERT_EXPERTISE = [
   { value: "organic_fertilizer", label: "Phân bón hữu cơ" },
   { value: "pest_control", label: "Phòng trừ sâu bệnh" },
   { value: "marketing", label: "Marketing nông sản" },
+  { value: "other", label: "Khác" },
 ];
 
 export const EXPERT_DEGREE_OPTIONS = [
@@ -242,6 +248,7 @@ export const KOL_CONTENT_TYPES = [
   { value: "beauty", label: "Làm đẹp" },
   { value: "travel", label: "Du lịch" },
   { value: "family", label: "Gia đình" },
+  { value: "other", label: "Khác" },
 ];
 
 export const KOL_PLATFORMS = [
@@ -286,6 +293,7 @@ export const KOC_REVIEW_CATEGORIES = [
   { value: "cosmetics", label: "Mỹ phẩm hữu cơ" },
   { value: "household", label: "Đồ gia dụng" },
   { value: "fashion", label: "Thời trang bền vững" },
+  { value: "other", label: "Khác" },
 ];
 
 export const KOC_PLATFORMS = [

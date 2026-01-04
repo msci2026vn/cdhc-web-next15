@@ -7,22 +7,31 @@ import {
   CONTACT_POSITION_OPTIONS,
   EMPLOYEE_COUNT_OPTIONS,
 } from "../../data/form-options";
-import { LocationSelect, MultiSelect, SelectField, TextField } from "../ui";
+import {
+  LocationSelect,
+  MultiSelectWithOther,
+  SelectWithOther,
+  TextField,
+} from "../ui";
 
 export interface BusinessFormData {
   companyName: string;
   taxCode: string;
   businessType: string;
+  businessTypeOther: string;
   provinceCode: string;
   wardCode: string;
   address: string;
   contactName: string;
+  contactBirthDate: string;
   contactPosition: string;
+  contactPositionOther: string;
   contactPhone: string;
   contactEmail: string;
   website: string;
   employeeCount: string;
   mainProducts: string[];
+  mainProductsOther: string;
 }
 
 interface BusinessFormProps {
@@ -38,16 +47,20 @@ export function BusinessForm({
     companyName: "",
     taxCode: "",
     businessType: "",
+    businessTypeOther: "",
     provinceCode: "",
     wardCode: "",
     address: "",
     contactName: "",
+    contactBirthDate: "",
     contactPosition: "",
+    contactPositionOther: "",
     contactPhone: "",
     contactEmail: "",
     website: "",
     employeeCount: "",
     mainProducts: [],
+    mainProductsOther: "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof BusinessFormData, string>>
@@ -70,6 +83,7 @@ export function BusinessForm({
       newErrors.contactPosition = "Vui lòng chọn chức vụ";
     if (!formData.contactPhone)
       newErrors.contactPhone = "Vui lòng nhập SĐT liên hệ";
+    if (!formData.website) newErrors.website = "Vui lòng nhập website";
     if (!formData.employeeCount)
       newErrors.employeeCount = "Vui lòng chọn quy mô nhân sự";
     if (formData.mainProducts.length === 0)
@@ -111,12 +125,16 @@ export function BusinessForm({
         error={errors.taxCode}
       />
 
-      <SelectField
+      <SelectWithOther
         label="Loại hình kinh doanh"
         name="businessType"
         value={formData.businessType}
+        otherValue={formData.businessTypeOther}
         onChange={(v) => {
           setFormData({ ...formData, businessType: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, businessTypeOther: v });
         }}
         options={BUSINESS_TYPES}
         required
@@ -160,13 +178,27 @@ export function BusinessForm({
         error={errors.contactName}
       />
 
+      <TextField
+        label="Ngày sinh người liên hệ"
+        name="contactBirthDate"
+        type="date"
+        value={formData.contactBirthDate}
+        onChange={(v) => {
+          setFormData({ ...formData, contactBirthDate: v });
+        }}
+      />
+
       <div className="grid grid-cols-2 gap-3">
-        <SelectField
+        <SelectWithOther
           label="Chức vụ"
           name="contactPosition"
           value={formData.contactPosition}
+          otherValue={formData.contactPositionOther}
           onChange={(v) => {
             setFormData({ ...formData, contactPosition: v });
+          }}
+          onOtherChange={(v) => {
+            setFormData({ ...formData, contactPositionOther: v });
           }}
           options={CONTACT_POSITION_OPTIONS}
           required
@@ -206,27 +238,35 @@ export function BusinessForm({
         onChange={(v) => {
           setFormData({ ...formData, website: v });
         }}
-        placeholder="https://example.com (tùy chọn)"
+        placeholder="https://example.com"
+        required
+        error={errors.website}
       />
 
-      <SelectField
+      <SelectWithOther
         label="Quy mô nhân sự"
         name="employeeCount"
         value={formData.employeeCount}
+        otherValue=""
         onChange={(v) => {
           setFormData({ ...formData, employeeCount: v });
         }}
+        onOtherChange={() => {}}
         options={EMPLOYEE_COUNT_OPTIONS}
         required
         error={errors.employeeCount}
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Sản phẩm chính"
         name="mainProducts"
         value={formData.mainProducts}
+        otherValue={formData.mainProductsOther}
         onChange={(v) => {
           setFormData({ ...formData, mainProducts: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, mainProductsOther: v });
         }}
         options={BUSINESS_PRODUCTS}
         required

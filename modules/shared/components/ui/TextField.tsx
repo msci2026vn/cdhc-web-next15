@@ -7,7 +7,7 @@ interface TextFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
-  type?: "text" | "tel" | "email" | "url";
+  type?: "text" | "tel" | "email" | "url" | "date";
   error?: string;
 }
 

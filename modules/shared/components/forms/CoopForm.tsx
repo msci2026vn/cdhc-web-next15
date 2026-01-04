@@ -12,9 +12,10 @@ import {
 } from "../../data/form-options";
 import {
   LocationSelect,
-  MultiSelect,
+  MultiSelectWithOther,
   RadioField,
   SelectField,
+  SelectWithOther,
   TextField,
 } from "../ui";
 
@@ -26,14 +27,20 @@ export interface CoopFormData {
   wardCode: string;
   address: string;
   representativeName: string;
+  representativeBirthDate: string;
   representativePosition: string;
+  representativePositionOther: string;
   phone: string;
   memberCount: string;
   employeeCount: string;
   farmArea: string;
   mainProducts: string[];
+  mainProductsOther: string;
   hasCertificate: string;
   certificateType: string;
+  certificateTypeOther: string;
+  hasWebsite: string;
+  website: string;
 }
 
 interface CoopFormProps {
@@ -50,14 +57,20 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
     wardCode: "",
     address: "",
     representativeName: "",
+    representativeBirthDate: "",
     representativePosition: "",
+    representativePositionOther: "",
     phone: "",
     memberCount: "",
     employeeCount: "",
     farmArea: "",
     mainProducts: [],
+    mainProductsOther: "",
     hasCertificate: "",
     certificateType: "",
+    certificateTypeOther: "",
+    hasWebsite: "",
+    website: "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof CoopFormData, string>>
@@ -90,6 +103,9 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
       newErrors.hasCertificate = "Vui lòng chọn có/không";
     if (formData.hasCertificate === "yes" && !formData.certificateType)
       newErrors.certificateType = "Vui lòng chọn loại chứng nhận";
+    if (!formData.hasWebsite) newErrors.hasWebsite = "Vui lòng chọn có/không";
+    if (formData.hasWebsite === "yes" && !formData.website)
+      newErrors.website = "Vui lòng nhập website";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -176,13 +192,27 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         error={errors.representativeName}
       />
 
+      <TextField
+        label="Ngày sinh người đại diện"
+        name="representativeBirthDate"
+        type="date"
+        value={formData.representativeBirthDate}
+        onChange={(v) => {
+          setFormData({ ...formData, representativeBirthDate: v });
+        }}
+      />
+
       <div className="grid grid-cols-2 gap-3">
-        <SelectField
+        <SelectWithOther
           label="Chức vụ"
           name="representativePosition"
           value={formData.representativePosition}
+          otherValue={formData.representativePositionOther}
           onChange={(v) => {
             setFormData({ ...formData, representativePosition: v });
+          }}
+          onOtherChange={(v) => {
+            setFormData({ ...formData, representativePositionOther: v });
           }}
           options={COOP_POSITION_OPTIONS}
           required
@@ -241,12 +271,16 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         error={errors.farmArea}
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Sản phẩm chính"
         name="mainProducts"
         value={formData.mainProducts}
+        otherValue={formData.mainProductsOther}
         onChange={(v) => {
           setFormData({ ...formData, mainProducts: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, mainProductsOther: v });
         }}
         options={COOP_PRODUCTS}
         required
@@ -262,6 +296,8 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
             ...formData,
             hasCertificate: v,
             certificateType: v === "no" ? "" : formData.certificateType,
+            certificateTypeOther:
+              v === "no" ? "" : formData.certificateTypeOther,
           });
         }}
         options={[
@@ -273,16 +309,54 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
       />
 
       {formData.hasCertificate === "yes" && (
-        <SelectField
+        <SelectWithOther
           label="Loại chứng nhận"
           name="certificateType"
           value={formData.certificateType}
+          otherValue={formData.certificateTypeOther}
           onChange={(v) => {
             setFormData({ ...formData, certificateType: v });
+          }}
+          onOtherChange={(v) => {
+            setFormData({ ...formData, certificateTypeOther: v });
           }}
           options={COOP_CERTIFICATE_TYPES}
           required
           error={errors.certificateType}
+        />
+      )}
+
+      <RadioField
+        label="Đã có website?"
+        name="hasWebsite"
+        value={formData.hasWebsite}
+        onChange={(v) => {
+          setFormData({
+            ...formData,
+            hasWebsite: v,
+            website: v === "no" ? "" : formData.website,
+          });
+        }}
+        options={[
+          { value: "yes", label: "Đã có" },
+          { value: "no", label: "Chưa có" },
+        ]}
+        required
+        error={errors.hasWebsite}
+      />
+
+      {formData.hasWebsite === "yes" && (
+        <TextField
+          label="Website"
+          name="website"
+          type="url"
+          value={formData.website}
+          onChange={(v) => {
+            setFormData({ ...formData, website: v });
+          }}
+          placeholder="https://example.com"
+          required
+          error={errors.website}
         />
       )}
 

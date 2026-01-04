@@ -11,10 +11,17 @@ interface User {
   picture?: string;
 }
 
+interface PlatformLink {
+  platform: string;
+  url: string;
+  followers: string;
+}
+
 interface Profile {
   // Common
   fullName?: string;
   phone?: string;
+  birthDate?: string;
   provinceCode?: string;
   wardCode?: string;
   address?: string;
@@ -23,18 +30,24 @@ interface Profile {
   farmSize?: string;
   farmType?: string[];
   mainProducts?: string[];
+  mainProductsOther?: string;
   hasCertificate?: string;
   certificateType?: string;
+  certificateTypeOther?: string;
 
   // Community
   interests?: string[];
+  interestsOther?: string;
 
   // Business
   companyName?: string;
   taxCode?: string;
   businessType?: string;
+  businessTypeOther?: string;
   contactName?: string;
+  contactBirthDate?: string;
   contactPosition?: string;
+  contactPositionOther?: string;
   contactPhone?: string;
   contactEmail?: string;
   website?: string;
@@ -45,37 +58,45 @@ interface Profile {
   coopCode?: string;
   establishedYear?: string;
   representativeName?: string;
+  representativeBirthDate?: string;
   representativePosition?: string;
+  representativePositionOther?: string;
   memberCount?: string;
   farmArea?: string;
+  hasWebsite?: string;
 
   // Shop
   shopName?: string;
   ownerName?: string;
+  ownerBirthDate?: string;
   shopType?: string;
   sellingPlatforms?: string[];
+  sellingPlatformsOther?: string;
   productCategories?: string[];
+  productCategoriesOther?: string;
 
   // Expert
   expertise?: string[];
+  expertiseOther?: string;
   degree?: string;
   experienceYears?: string;
   workplaceType?: string;
+  workplaceTypeOther?: string;
   workplace?: string;
   position?: string;
+  positionOther?: string;
   bio?: string;
 
   // KOL
   stageName?: string;
   contentTypes?: string[];
-  platforms?: string[];
-  totalFollowers?: string;
-  engagementRate?: string;
-  mainPlatformUrl?: string;
+  contentTypesOther?: string;
+  platformLinks?: PlatformLink[];
   priceRange?: string;
 
   // KOC
   reviewCategories?: string[];
+  reviewCategoriesOther?: string;
   reviewCount?: string;
 }
 
@@ -142,6 +163,10 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     yes: "Có",
     no: "Chưa có",
   },
+  hasWebsite: {
+    yes: "Đã có",
+    no: "Chưa có",
+  },
 
   // Community
   interests: {
@@ -154,6 +179,7 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     processed: "Thực phẩm chế biến",
     beverages: "Đồ uống",
     cosmetics: "Mỹ phẩm hữu cơ",
+    other: "Khác",
   },
 
   // Business
@@ -165,6 +191,7 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     retail: "Bán lẻ",
     production: "Sản xuất",
     logistics: "Logistics",
+    other: "Khác",
   },
   contactPosition: {
     director: "Giám đốc",
@@ -251,6 +278,7 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     spices: "Gia vị",
     beverages: "Đồ uống",
     cosmetics: "Mỹ phẩm",
+    other: "Khác",
   },
 
   // Expert
@@ -264,6 +292,7 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     organic_fertilizer: "Phân bón hữu cơ",
     pest_control: "Phòng trừ sâu bệnh",
     marketing: "Marketing nông sản",
+    other: "Khác",
   },
   degree: {
     bachelor: "Cử nhân",
@@ -304,6 +333,7 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     beauty: "Làm đẹp",
     travel: "Du lịch",
     family: "Gia đình",
+    other: "Khác",
   },
   platforms: {
     facebook: "Facebook",
@@ -327,13 +357,6 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     "5k_10k": "5K-10K",
     over_100k: "> 100K",
   },
-  engagementRate: {
-    under_1: "< 1%",
-    "1_3": "1-3%",
-    "3_5": "3-5%",
-    "5_10": "5-10%",
-    over_10: "> 10%",
-  },
   priceRange: {
     under_2m: "< 2 triệu",
     "2_5m": "2-5 triệu",
@@ -354,6 +377,7 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     cosmetics: "Mỹ phẩm hữu cơ",
     household: "Đồ gia dụng",
     fashion: "Thời trang bền vững",
+    other: "Khác",
   },
   reviewCount: {
     under_10: "< 10",
@@ -368,8 +392,24 @@ function getLabel(field: string, value: string): string {
   return FIELD_LABELS[field]?.[value] ?? value;
 }
 
-function getLabels(field: string, values: string[]): string {
-  return values.map((v) => getLabel(field, v)).join(", ");
+function getLabels(
+  field: string,
+  values: string[],
+  otherValue?: string
+): string {
+  const labels = values.map((v) => {
+    if (v === "other" && otherValue) {
+      return `Khác: ${otherValue}`;
+    }
+    return getLabel(field, v);
+  });
+  return labels.join(", ");
+}
+
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("vi-VN");
 }
 
 function getInitialUser(): User | null {
@@ -405,6 +445,37 @@ export default function PendingPage() {
     window.location.href = "/login";
   };
 
+  const renderPlatformLinks = (links: PlatformLink[]) => {
+    const validLinks = links.filter((l) => l.platform && l.url);
+    if (validLinks.length === 0) return null;
+    return (
+      <div className="text-sm text-slate-600">
+        <strong className="text-slate-700">Kênh hoạt động:</strong>
+        <ul className="ml-4 mt-1 space-y-1">
+          {validLinks.map((link) => (
+            <li key={`${link.platform}-${link.url}`}>
+              {getLabel("platforms", link.platform)}:{" "}
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {link.url}
+              </a>
+              {link.followers && (
+                <span className="text-slate-500">
+                  {" "}
+                  ({getLabel("totalFollowers", link.followers)} followers)
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   const renderProfileInfo = () => {
     if (!profile || !user) return null;
 
@@ -418,6 +489,9 @@ export default function PendingPage() {
         )}
         {profile.phone && (
           <InfoRow label="Số điện thoại" value={profile.phone} />
+        )}
+        {profile.birthDate && (
+          <InfoRow label="Ngày sinh" value={formatDate(profile.birthDate)} />
         )}
 
         {/* Farmer */}
@@ -438,7 +512,11 @@ export default function PendingPage() {
             {profile.mainProducts && profile.mainProducts.length > 0 && (
               <InfoRow
                 label="Sản phẩm chính"
-                value={getLabels("mainProducts", profile.mainProducts)}
+                value={getLabels(
+                  "mainProducts",
+                  profile.mainProducts,
+                  profile.mainProductsOther
+                )}
               />
             )}
             {profile.hasCertificate && (
@@ -446,7 +524,10 @@ export default function PendingPage() {
                 label="Chứng nhận"
                 value={
                   profile.hasCertificate === "yes" && profile.certificateType
-                    ? getLabel("certificateType", profile.certificateType)
+                    ? profile.certificateType === "other" &&
+                      profile.certificateTypeOther
+                      ? `Khác: ${profile.certificateTypeOther}`
+                      : getLabel("certificateType", profile.certificateType)
                     : getLabel("hasCertificate", profile.hasCertificate)
                 }
               />
@@ -460,7 +541,11 @@ export default function PendingPage() {
           profile.interests.length > 0 && (
             <InfoRow
               label="Quan tâm"
-              value={getLabels("interests", profile.interests)}
+              value={getLabels(
+                "interests",
+                profile.interests,
+                profile.interestsOther
+              )}
             />
           )}
 
@@ -476,16 +561,31 @@ export default function PendingPage() {
             {profile.businessType && (
               <InfoRow
                 label="Loại hình"
-                value={getLabel("businessType", profile.businessType)}
+                value={
+                  profile.businessType === "other" && profile.businessTypeOther
+                    ? `Khác: ${profile.businessTypeOther}`
+                    : getLabel("businessType", profile.businessType)
+                }
               />
             )}
             {profile.contactName && (
               <InfoRow label="Người liên hệ" value={profile.contactName} />
             )}
+            {profile.contactBirthDate && (
+              <InfoRow
+                label="Ngày sinh người liên hệ"
+                value={formatDate(profile.contactBirthDate)}
+              />
+            )}
             {profile.contactPosition && (
               <InfoRow
                 label="Chức vụ"
-                value={getLabel("contactPosition", profile.contactPosition)}
+                value={
+                  profile.contactPosition === "other" &&
+                  profile.contactPositionOther
+                    ? `Khác: ${profile.contactPositionOther}`
+                    : getLabel("contactPosition", profile.contactPosition)
+                }
               />
             )}
             {profile.contactPhone && (
@@ -493,6 +593,9 @@ export default function PendingPage() {
             )}
             {profile.contactEmail && (
               <InfoRow label="Email" value={profile.contactEmail} />
+            )}
+            {profile.website && (
+              <InfoRow label="Website" value={profile.website} />
             )}
             {profile.employeeCount && (
               <InfoRow
@@ -503,7 +606,11 @@ export default function PendingPage() {
             {profile.mainProducts && profile.mainProducts.length > 0 && (
               <InfoRow
                 label="Sản phẩm chính"
-                value={getLabels("mainProducts", profile.mainProducts)}
+                value={getLabels(
+                  "mainProducts",
+                  profile.mainProducts,
+                  profile.mainProductsOther
+                )}
               />
             )}
           </>
@@ -530,25 +637,30 @@ export default function PendingPage() {
                 value={profile.representativeName}
               />
             )}
+            {profile.representativeBirthDate && (
+              <InfoRow
+                label="Ngày sinh người đại diện"
+                value={formatDate(profile.representativeBirthDate)}
+              />
+            )}
             {profile.representativePosition && (
               <InfoRow
                 label="Chức vụ"
-                value={getLabel(
-                  "representativePosition",
-                  profile.representativePosition
-                )}
+                value={
+                  profile.representativePosition === "other" &&
+                  profile.representativePositionOther
+                    ? `Khác: ${profile.representativePositionOther}`
+                    : getLabel(
+                        "representativePosition",
+                        profile.representativePosition
+                      )
+                }
               />
             )}
             {profile.memberCount && (
               <InfoRow
                 label="Số thành viên"
                 value={getLabel("memberCount", profile.memberCount)}
-              />
-            )}
-            {profile.employeeCount && (
-              <InfoRow
-                label="Số lao động"
-                value={getLabel("coopEmployeeCount", profile.employeeCount)}
               />
             )}
             {profile.farmArea && (
@@ -560,7 +672,11 @@ export default function PendingPage() {
             {profile.mainProducts && profile.mainProducts.length > 0 && (
               <InfoRow
                 label="Sản phẩm chính"
-                value={getLabels("mainProducts", profile.mainProducts)}
+                value={getLabels(
+                  "mainProducts",
+                  profile.mainProducts,
+                  profile.mainProductsOther
+                )}
               />
             )}
             {profile.hasCertificate && (
@@ -568,8 +684,21 @@ export default function PendingPage() {
                 label="Chứng nhận"
                 value={
                   profile.hasCertificate === "yes" && profile.certificateType
-                    ? getLabel("certificateType", profile.certificateType)
+                    ? profile.certificateType === "other" &&
+                      profile.certificateTypeOther
+                      ? `Khác: ${profile.certificateTypeOther}`
+                      : getLabel("certificateType", profile.certificateType)
                     : getLabel("hasCertificate", profile.hasCertificate)
+                }
+              />
+            )}
+            {profile.hasWebsite && (
+              <InfoRow
+                label="Website"
+                value={
+                  profile.hasWebsite === "yes" && profile.website
+                    ? profile.website
+                    : getLabel("hasWebsite", profile.hasWebsite)
                 }
               />
             )}
@@ -585,6 +714,12 @@ export default function PendingPage() {
             {profile.ownerName && (
               <InfoRow label="Chủ shop" value={profile.ownerName} />
             )}
+            {profile.ownerBirthDate && (
+              <InfoRow
+                label="Ngày sinh chủ shop"
+                value={formatDate(profile.ownerBirthDate)}
+              />
+            )}
             {profile.shopType && (
               <InfoRow
                 label="Hình thức"
@@ -597,7 +732,8 @@ export default function PendingPage() {
                   label="Nền tảng bán hàng"
                   value={getLabels(
                     "sellingPlatforms",
-                    profile.sellingPlatforms
+                    profile.sellingPlatforms,
+                    profile.sellingPlatformsOther
                   )}
                 />
               )}
@@ -607,7 +743,8 @@ export default function PendingPage() {
                   label="Danh mục sản phẩm"
                   value={getLabels(
                     "productCategories",
-                    profile.productCategories
+                    profile.productCategories,
+                    profile.productCategoriesOther
                   )}
                 />
               )}
@@ -623,7 +760,11 @@ export default function PendingPage() {
             {profile.expertise && profile.expertise.length > 0 && (
               <InfoRow
                 label="Chuyên môn"
-                value={getLabels("expertise", profile.expertise)}
+                value={getLabels(
+                  "expertise",
+                  profile.expertise,
+                  profile.expertiseOther
+                )}
               />
             )}
             {profile.degree && (
@@ -641,7 +782,12 @@ export default function PendingPage() {
             {profile.workplaceType && (
               <InfoRow
                 label="Loại nơi làm việc"
-                value={getLabel("workplaceType", profile.workplaceType)}
+                value={
+                  profile.workplaceType === "other" &&
+                  profile.workplaceTypeOther
+                    ? `Khác: ${profile.workplaceTypeOther}`
+                    : getLabel("workplaceType", profile.workplaceType)
+                }
               />
             )}
             {profile.workplace && (
@@ -650,7 +796,11 @@ export default function PendingPage() {
             {profile.position && (
               <InfoRow
                 label="Chức vụ"
-                value={getLabel("position", profile.position)}
+                value={
+                  profile.position === "other" && profile.positionOther
+                    ? `Khác: ${profile.positionOther}`
+                    : getLabel("position", profile.position)
+                }
               />
             )}
             {profile.bio && <InfoRow label="Giới thiệu" value={profile.bio} />}
@@ -666,33 +816,15 @@ export default function PendingPage() {
             {profile.contentTypes && profile.contentTypes.length > 0 && (
               <InfoRow
                 label="Loại nội dung"
-                value={getLabels("contentTypes", profile.contentTypes)}
+                value={getLabels(
+                  "contentTypes",
+                  profile.contentTypes,
+                  profile.contentTypesOther
+                )}
               />
             )}
-            {profile.platforms && profile.platforms.length > 0 && (
-              <InfoRow
-                label="Nền tảng"
-                value={getLabels("platforms", profile.platforms)}
-              />
-            )}
-            {profile.totalFollowers && (
-              <InfoRow
-                label="Tổng followers"
-                value={getLabel("totalFollowers", profile.totalFollowers)}
-              />
-            )}
-            {profile.engagementRate && (
-              <InfoRow
-                label="Tỷ lệ tương tác"
-                value={getLabel("engagementRate", profile.engagementRate)}
-              />
-            )}
-            {profile.mainPlatformUrl && (
-              <InfoRow
-                label="Link kênh chính"
-                value={profile.mainPlatformUrl}
-              />
-            )}
+            {profile.platformLinks &&
+              renderPlatformLinks(profile.platformLinks)}
             {profile.priceRange && (
               <InfoRow
                 label="Mức giá"
@@ -712,32 +844,17 @@ export default function PendingPage() {
                   label="Danh mục review"
                   value={getLabels(
                     "reviewCategories",
-                    profile.reviewCategories
+                    profile.reviewCategories,
+                    profile.reviewCategoriesOther
                   )}
                 />
               )}
-            {profile.platforms && profile.platforms.length > 0 && (
-              <InfoRow
-                label="Nền tảng"
-                value={getLabels("platforms", profile.platforms)}
-              />
-            )}
-            {profile.totalFollowers && (
-              <InfoRow
-                label="Tổng followers"
-                value={getLabel("totalFollowers", profile.totalFollowers)}
-              />
-            )}
+            {profile.platformLinks &&
+              renderPlatformLinks(profile.platformLinks)}
             {profile.reviewCount && (
               <InfoRow
                 label="Số bài review"
                 value={getLabel("reviewCount", profile.reviewCount)}
-              />
-            )}
-            {profile.mainPlatformUrl && (
-              <InfoRow
-                label="Link kênh chính"
-                value={profile.mainPlatformUrl}
               />
             )}
             {profile.priceRange && (

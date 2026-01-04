@@ -8,19 +8,29 @@ import {
   EXPERT_POSITION_OPTIONS,
   EXPERT_WORKPLACE_TYPE_OPTIONS,
 } from "../../data/form-options";
-import { LocationSelect, MultiSelect, SelectField, TextField } from "../ui";
+import {
+  LocationSelect,
+  MultiSelectWithOther,
+  SelectField,
+  SelectWithOther,
+  TextField,
+} from "../ui";
 
 export interface ExpertFormData {
   fullName: string;
   phone: string;
+  birthDate: string;
   provinceCode: string;
   wardCode: string;
   expertise: string[];
+  expertiseOther: string;
   degree: string;
   experienceYears: string;
   workplaceType: string;
+  workplaceTypeOther: string;
   workplace: string;
   position: string;
+  positionOther: string;
   bio: string;
 }
 
@@ -33,14 +43,18 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
   const [formData, setFormData] = useState<ExpertFormData>({
     fullName: "",
     phone: "",
+    birthDate: "",
     provinceCode: "",
     wardCode: "",
     expertise: [],
+    expertiseOther: "",
     degree: "",
     experienceYears: "",
     workplaceType: "",
+    workplaceTypeOther: "",
     workplace: "",
     position: "",
+    positionOther: "",
     bio: "",
   });
   const [errors, setErrors] = useState<
@@ -100,6 +114,16 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         error={errors.phone}
       />
 
+      <TextField
+        label="Ngày sinh"
+        name="birthDate"
+        type="date"
+        value={formData.birthDate}
+        onChange={(v) => {
+          setFormData({ ...formData, birthDate: v });
+        }}
+      />
+
       <LocationSelect
         provinceCode={formData.provinceCode}
         wardCode={formData.wardCode}
@@ -113,12 +137,16 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         error={errors.provinceCode}
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Lĩnh vực chuyên môn"
         name="expertise"
         value={formData.expertise}
+        otherValue={formData.expertiseOther}
         onChange={(v) => {
           setFormData({ ...formData, expertise: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, expertiseOther: v });
         }}
         options={EXPERT_EXPERTISE}
         required
@@ -151,12 +179,16 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         />
       </div>
 
-      <SelectField
+      <SelectWithOther
         label="Loại nơi làm việc"
         name="workplaceType"
         value={formData.workplaceType}
+        otherValue={formData.workplaceTypeOther}
         onChange={(v) => {
           setFormData({ ...formData, workplaceType: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, workplaceTypeOther: v });
         }}
         options={EXPERT_WORKPLACE_TYPE_OPTIONS}
         required
@@ -173,12 +205,16 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         placeholder="Tên trường/viện/công ty (tùy chọn)"
       />
 
-      <SelectField
+      <SelectWithOther
         label="Chức vụ"
         name="position"
         value={formData.position}
+        otherValue={formData.positionOther}
         onChange={(v) => {
           setFormData({ ...formData, position: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, positionOther: v });
         }}
         options={EXPERT_POSITION_OPTIONS}
         required

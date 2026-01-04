@@ -6,11 +6,17 @@ import {
   SHOP_PRODUCT_CATEGORIES,
   SHOP_TYPE_OPTIONS,
 } from "../../data/form-options";
-import { LocationSelect, MultiSelect, RadioField, TextField } from "../ui";
+import {
+  LocationSelect,
+  MultiSelectWithOther,
+  RadioField,
+  TextField,
+} from "../ui";
 
 export interface ShopFormData {
   shopName: string;
   ownerName: string;
+  ownerBirthDate: string;
   phone: string;
   shopType: string;
   provinceCode: string;
@@ -18,7 +24,9 @@ export interface ShopFormData {
   address: string;
   website: string;
   sellingPlatforms: string[];
+  sellingPlatformsOther: string;
   productCategories: string[];
+  productCategoriesOther: string;
 }
 
 interface ShopFormProps {
@@ -30,6 +38,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
   const [formData, setFormData] = useState<ShopFormData>({
     shopName: "",
     ownerName: "",
+    ownerBirthDate: "",
     phone: "",
     shopType: "",
     provinceCode: "",
@@ -37,7 +46,9 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
     address: "",
     website: "",
     sellingPlatforms: [],
+    sellingPlatformsOther: "",
     productCategories: [],
+    productCategoriesOther: "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof ShopFormData, string>>
@@ -97,6 +108,16 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         placeholder="Nguyễn Văn A"
         required
         error={errors.ownerName}
+      />
+
+      <TextField
+        label="Ngày sinh chủ shop"
+        name="ownerBirthDate"
+        type="date"
+        value={formData.ownerBirthDate}
+        onChange={(v) => {
+          setFormData({ ...formData, ownerBirthDate: v });
+        }}
       />
 
       <TextField
@@ -166,24 +187,32 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         placeholder="https://example.com (tùy chọn)"
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Nền tảng bán hàng"
         name="sellingPlatforms"
         value={formData.sellingPlatforms}
+        otherValue={formData.sellingPlatformsOther}
         onChange={(v) => {
           setFormData({ ...formData, sellingPlatforms: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, sellingPlatformsOther: v });
         }}
         options={SELLING_PLATFORMS}
         required
         error={errors.sellingPlatforms}
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Danh mục sản phẩm"
         name="productCategories"
         value={formData.productCategories}
+        otherValue={formData.productCategoriesOther}
         onChange={(v) => {
           setFormData({ ...formData, productCategories: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, productCategoriesOther: v });
         }}
         options={SHOP_PRODUCT_CATEGORIES}
         required

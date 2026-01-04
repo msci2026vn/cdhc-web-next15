@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { COMMUNITY_INTERESTS } from "../../data/form-options";
-import { LocationSelect, MultiSelect, TextField } from "../ui";
+import { LocationSelect, MultiSelectWithOther, TextField } from "../ui";
 
 export interface CommunityFormData {
   fullName: string;
   phone: string;
+  birthDate: string;
   provinceCode: string;
   wardCode: string;
   interests: string[];
+  interestsOther: string;
 }
 
 interface CommunityFormProps {
@@ -24,9 +26,11 @@ export function CommunityForm({
   const [formData, setFormData] = useState<CommunityFormData>({
     fullName: "",
     phone: "",
+    birthDate: "",
     provinceCode: "",
     wardCode: "",
     interests: [],
+    interestsOther: "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof CommunityFormData, string>>
@@ -76,6 +80,16 @@ export function CommunityForm({
         placeholder="0912 345 678 (tùy chọn)"
       />
 
+      <TextField
+        label="Ngày sinh"
+        name="birthDate"
+        type="date"
+        value={formData.birthDate}
+        onChange={(v) => {
+          setFormData({ ...formData, birthDate: v });
+        }}
+      />
+
       <LocationSelect
         provinceCode={formData.provinceCode}
         wardCode={formData.wardCode}
@@ -89,12 +103,16 @@ export function CommunityForm({
         error={errors.provinceCode}
       />
 
-      <MultiSelect
+      <MultiSelectWithOther
         label="Sản phẩm quan tâm"
         name="interests"
         value={formData.interests}
+        otherValue={formData.interestsOther}
         onChange={(v) => {
           setFormData({ ...formData, interests: v });
+        }}
+        onOtherChange={(v) => {
+          setFormData({ ...formData, interestsOther: v });
         }}
         options={COMMUNITY_INTERESTS}
         required
