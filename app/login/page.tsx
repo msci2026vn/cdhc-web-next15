@@ -299,16 +299,27 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
+    console.log("=== DEBUG REGISTER ===");
+    console.log("1. idToken:", `${idToken.substring(0, 50)}...`);
+    console.log("2. role:", selectedRole);
+    console.log("3. profileData:", JSON.stringify(profileData, null, 2));
+
     try {
+      // Spread profile data at root level instead of nested
+      const payload = {
+        idToken,
+        role: selectedRole,
+        ...profileData,
+      };
+      console.log("4. Final payload:", JSON.stringify(payload, null, 2));
+
       const res = await fetch(`${API_URL}/api/auth/google/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idToken,
-          role: selectedRole,
-          profile: profileData,
-        }),
+        body: JSON.stringify(payload),
       });
+
+      console.log("5. Response status:", res.status);
 
       const data = (await res.json()) as {
         success: boolean;
@@ -317,7 +328,10 @@ export default function LoginPage() {
         user?: User;
       };
 
+      console.log("6. Response data:", JSON.stringify(data, null, 2));
+
       if (!data.success) {
+        console.log("7. ERROR: success = false, message:", data.message);
         setError(data.message ?? "Đăng ký thất bại");
         return;
       }
