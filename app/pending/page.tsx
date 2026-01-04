@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import { useState } from "react";
 
 interface User {
   name: string;
@@ -20,7 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
   koc: "KOC",
 };
 
-function getStoredUser(): User | null {
+function getInitialUser(): User | null {
   if (typeof window === "undefined") return null;
   const userData = localStorage.getItem("user");
   if (!userData) return null;
@@ -31,15 +31,8 @@ function getStoredUser(): User | null {
   }
 }
 
-function subscribe(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => {
-    window.removeEventListener("storage", callback);
-  };
-}
-
 export default function PendingPage() {
-  const user = useSyncExternalStore(subscribe, getStoredUser, () => null);
+  const [user] = useState<User | null>(getInitialUser);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
