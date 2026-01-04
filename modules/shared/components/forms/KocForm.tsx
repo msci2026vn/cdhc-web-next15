@@ -2,36 +2,46 @@
 
 import { useState } from "react";
 import {
-  PLATFORM_OPTIONS,
-  REVIEW_CATEGORIES,
-  REVIEW_EXPERIENCE_OPTIONS,
+  KOC_FOLLOWER_OPTIONS,
+  KOC_PLATFORMS,
+  KOC_PRICE_OPTIONS,
+  KOC_REVIEW_CATEGORIES,
+  KOC_REVIEW_COUNT_OPTIONS,
 } from "../../data/form-options";
 import { LocationSelect, MultiSelect, SelectField, TextField } from "../ui";
 
 export interface KocFormData {
+  fullName: string;
   phone: string;
-  platforms: string[];
-  experience: string;
-  categories: string[];
-  profileUrl: string;
   provinceCode: string;
   wardCode: string;
+  reviewCategories: string[];
+  platforms: string[];
+  totalFollowers: string;
+  reviewCount: string;
+  bio: string;
+  mainPlatformUrl: string;
+  priceRange: string;
 }
 
 interface KocFormProps {
-  onSubmit: (data: KocFormData) => void;
-  isLoading?: boolean;
+  readonly onSubmit: (data: KocFormData) => void;
+  readonly isLoading?: boolean;
 }
 
 export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
   const [formData, setFormData] = useState<KocFormData>({
+    fullName: "",
     phone: "",
-    platforms: [],
-    experience: "",
-    categories: [],
-    profileUrl: "",
     provinceCode: "",
     wardCode: "",
+    reviewCategories: [],
+    platforms: [],
+    totalFollowers: "",
+    reviewCount: "",
+    bio: "",
+    mainPlatformUrl: "",
+    priceRange: "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof KocFormData, string>>
@@ -40,13 +50,21 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof KocFormData, string>> = {};
 
+    if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
+    if (!formData.provinceCode)
+      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (formData.reviewCategories.length === 0)
+      newErrors.reviewCategories = "Vui lòng chọn ít nhất 1 danh mục";
     if (formData.platforms.length === 0)
       newErrors.platforms = "Vui lòng chọn ít nhất 1 nền tảng";
-    if (!formData.experience)
-      newErrors.experience = "Vui lòng chọn kinh nghiệm";
-    if (formData.categories.length === 0)
-      newErrors.categories = "Vui lòng chọn ít nhất 1 danh mục";
+    if (!formData.totalFollowers)
+      newErrors.totalFollowers = "Vui lòng chọn tổng số followers";
+    if (!formData.reviewCount)
+      newErrors.reviewCount = "Vui lòng chọn số bài review";
+    if (!formData.mainPlatformUrl)
+      newErrors.mainPlatformUrl = "Vui lòng nhập link kênh chính";
+    if (!formData.priceRange) newErrors.priceRange = "Vui lòng chọn mức giá";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -61,63 +79,134 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
   return (
     <div className="space-y-1">
       <TextField
+        label="Họ và tên"
+        name="fullName"
+        value={formData.fullName}
+        onChange={(v) => {
+          setFormData({ ...formData, fullName: v });
+        }}
+        placeholder="Nguyễn Văn A"
+        required
+        error={errors.fullName}
+      />
+
+      <TextField
         label="Số điện thoại"
         name="phone"
         type="tel"
         value={formData.phone}
-        onChange={(v) => setFormData({ ...formData, phone: v })}
+        onChange={(v) => {
+          setFormData({ ...formData, phone: v });
+        }}
         placeholder="0912 345 678"
         required
         error={errors.phone}
+      />
+
+      <LocationSelect
+        provinceCode={formData.provinceCode}
+        wardCode={formData.wardCode}
+        onProvinceChange={(v) => {
+          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+        }}
+        onWardChange={(v) => {
+          setFormData({ ...formData, wardCode: v });
+        }}
+        required
+        error={errors.provinceCode}
+      />
+
+      <MultiSelect
+        label="Danh mục review"
+        name="reviewCategories"
+        value={formData.reviewCategories}
+        onChange={(v) => {
+          setFormData({ ...formData, reviewCategories: v });
+        }}
+        options={KOC_REVIEW_CATEGORIES}
+        required
+        error={errors.reviewCategories}
       />
 
       <MultiSelect
         label="Nền tảng hoạt động"
         name="platforms"
         value={formData.platforms}
-        onChange={(v) => setFormData({ ...formData, platforms: v })}
-        options={PLATFORM_OPTIONS}
+        onChange={(v) => {
+          setFormData({ ...formData, platforms: v });
+        }}
+        options={KOC_PLATFORMS}
         required
         error={errors.platforms}
       />
 
-      <SelectField
-        label="Kinh nghiệm review"
-        name="experience"
-        value={formData.experience}
-        onChange={(v) => setFormData({ ...formData, experience: v })}
-        options={REVIEW_EXPERIENCE_OPTIONS}
-        required
-        error={errors.experience}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Tổng số followers"
+          name="totalFollowers"
+          value={formData.totalFollowers}
+          onChange={(v) => {
+            setFormData({ ...formData, totalFollowers: v });
+          }}
+          options={KOC_FOLLOWER_OPTIONS}
+          required
+          error={errors.totalFollowers}
+        />
 
-      <MultiSelect
-        label="Danh mục quan tâm"
-        name="categories"
-        value={formData.categories}
-        onChange={(v) => setFormData({ ...formData, categories: v })}
-        options={REVIEW_CATEGORIES}
-        required
-        maxSelect={3}
-        error={errors.categories}
-      />
+        <SelectField
+          label="Số bài review"
+          name="reviewCount"
+          value={formData.reviewCount}
+          onChange={(v) => {
+            setFormData({ ...formData, reviewCount: v });
+          }}
+          options={KOC_REVIEW_COUNT_OPTIONS}
+          required
+          error={errors.reviewCount}
+        />
+      </div>
+
+      <div className="mb-4">
+        <label
+          htmlFor="bio"
+          className="block text-sm font-medium text-slate-700 mb-1"
+        >
+          Giới thiệu bản thân
+        </label>
+        <textarea
+          id="bio"
+          name="bio"
+          value={formData.bio}
+          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+          placeholder="Mô tả ngắn về kinh nghiệm review (tùy chọn)"
+          rows={3}
+          className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-colors focus:outline-none focus:border-green-500 resize-none"
+        />
+      </div>
 
       <TextField
-        label="Link profile"
-        name="profileUrl"
+        label="Link kênh chính"
+        name="mainPlatformUrl"
         type="url"
-        value={formData.profileUrl}
-        onChange={(v) => setFormData({ ...formData, profileUrl: v })}
-        placeholder="https://facebook.com/yourprofile"
+        value={formData.mainPlatformUrl}
+        onChange={(v) => {
+          setFormData({ ...formData, mainPlatformUrl: v });
+        }}
+        placeholder="https://facebook.com/yourpage"
+        required
+        error={errors.mainPlatformUrl}
       />
 
-      <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
-        onProvinceChange={(v) =>
-          setFormData({ ...formData, provinceCode: v, wardCode: "" })
-        }
-        onWardChange={(v) => setFormData({ ...formData, wardCode: v })}
+      <SelectField
+        label="Mức giá hợp tác"
+        name="priceRange"
+        value={formData.priceRange}
+        onChange={(v) => {
+          setFormData({ ...formData, priceRange: v });
+        }}
+        options={KOC_PRICE_OPTIONS}
+        required
+        error={errors.priceRange}
       />
 
       <button

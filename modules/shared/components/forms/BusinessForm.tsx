@@ -2,22 +2,27 @@
 
 import { useState } from "react";
 import {
+  BUSINESS_PRODUCTS,
   BUSINESS_TYPES,
+  CONTACT_POSITION_OPTIONS,
   EMPLOYEE_COUNT_OPTIONS,
-  POSITION_OPTIONS,
 } from "../../data/form-options";
-import { LocationSelect, SelectField, TextField } from "../ui";
+import { LocationSelect, MultiSelect, SelectField, TextField } from "../ui";
 
 export interface BusinessFormData {
-  phone: string;
   companyName: string;
   taxCode: string;
   businessType: string;
-  position: string;
-  employeeCount: string;
-  website: string;
   provinceCode: string;
   wardCode: string;
+  address: string;
+  contactName: string;
+  contactPosition: string;
+  contactPhone: string;
+  contactEmail: string;
+  website: string;
+  employeeCount: string;
+  mainProducts: string[];
 }
 
 interface BusinessFormProps {
@@ -28,17 +33,21 @@ interface BusinessFormProps {
 export function BusinessForm({
   onSubmit,
   isLoading = false,
-}: Readonly<BusinessFormProps>) {
+}: BusinessFormProps) {
   const [formData, setFormData] = useState<BusinessFormData>({
-    phone: "",
     companyName: "",
     taxCode: "",
     businessType: "",
-    position: "",
-    employeeCount: "",
-    website: "",
     provinceCode: "",
     wardCode: "",
+    address: "",
+    contactName: "",
+    contactPosition: "",
+    contactPhone: "",
+    contactEmail: "",
+    website: "",
+    employeeCount: "",
+    mainProducts: [],
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof BusinessFormData, string>>
@@ -47,14 +56,24 @@ export function BusinessForm({
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof BusinessFormData, string>> = {};
 
-    if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
     if (!formData.companyName)
       newErrors.companyName = "Vui lòng nhập tên công ty";
+    if (!formData.taxCode) newErrors.taxCode = "Vui lòng nhập mã số thuế";
     if (!formData.businessType)
-      newErrors.businessType = "Vui lòng chọn lĩnh vực";
-    if (!formData.position) newErrors.position = "Vui lòng chọn chức vụ";
+      newErrors.businessType = "Vui lòng chọn loại hình";
     if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn địa điểm";
+      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.address) newErrors.address = "Vui lòng nhập địa chỉ trụ sở";
+    if (!formData.contactName)
+      newErrors.contactName = "Vui lòng nhập người liên hệ";
+    if (!formData.contactPosition)
+      newErrors.contactPosition = "Vui lòng chọn chức vụ";
+    if (!formData.contactPhone)
+      newErrors.contactPhone = "Vui lòng nhập SĐT liên hệ";
+    if (!formData.employeeCount)
+      newErrors.employeeCount = "Vui lòng chọn quy mô nhân sự";
+    if (formData.mainProducts.length === 0)
+      newErrors.mainProducts = "Vui lòng chọn ít nhất 1 sản phẩm";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -68,19 +87,6 @@ export function BusinessForm({
 
   return (
     <div className="space-y-1">
-      <TextField
-        label="Số điện thoại"
-        name="phone"
-        type="tel"
-        value={formData.phone}
-        onChange={(v) => {
-          setFormData({ ...formData, phone: v });
-        }}
-        placeholder="0912 345 678"
-        required
-        error={errors.phone}
-      />
-
       <TextField
         label="Tên công ty"
         name="companyName"
@@ -101,53 +107,20 @@ export function BusinessForm({
           setFormData({ ...formData, taxCode: v });
         }}
         placeholder="0123456789"
+        required
+        error={errors.taxCode}
       />
-
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
-          label="Lĩnh vực"
-          name="businessType"
-          value={formData.businessType}
-          onChange={(v) => {
-            setFormData({ ...formData, businessType: v });
-          }}
-          options={BUSINESS_TYPES}
-          required
-          error={errors.businessType}
-        />
-
-        <SelectField
-          label="Chức vụ"
-          name="position"
-          value={formData.position}
-          onChange={(v) => {
-            setFormData({ ...formData, position: v });
-          }}
-          options={POSITION_OPTIONS}
-          required
-          error={errors.position}
-        />
-      </div>
 
       <SelectField
-        label="Quy mô nhân sự"
-        name="employeeCount"
-        value={formData.employeeCount}
+        label="Loại hình kinh doanh"
+        name="businessType"
+        value={formData.businessType}
         onChange={(v) => {
-          setFormData({ ...formData, employeeCount: v });
+          setFormData({ ...formData, businessType: v });
         }}
-        options={EMPLOYEE_COUNT_OPTIONS}
-      />
-
-      <TextField
-        label="Website"
-        name="website"
-        type="url"
-        value={formData.website}
-        onChange={(v) => {
-          setFormData({ ...formData, website: v });
-        }}
-        placeholder="https://example.com"
+        options={BUSINESS_TYPES}
+        required
+        error={errors.businessType}
       />
 
       <LocationSelect
@@ -161,6 +134,103 @@ export function BusinessForm({
         }}
         required
         error={errors.provinceCode}
+      />
+
+      <TextField
+        label="Địa chỉ trụ sở"
+        name="address"
+        value={formData.address}
+        onChange={(v) => {
+          setFormData({ ...formData, address: v });
+        }}
+        placeholder="Số nhà, đường..."
+        required
+        error={errors.address}
+      />
+
+      <TextField
+        label="Người liên hệ"
+        name="contactName"
+        value={formData.contactName}
+        onChange={(v) => {
+          setFormData({ ...formData, contactName: v });
+        }}
+        placeholder="Nguyễn Văn A"
+        required
+        error={errors.contactName}
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Chức vụ"
+          name="contactPosition"
+          value={formData.contactPosition}
+          onChange={(v) => {
+            setFormData({ ...formData, contactPosition: v });
+          }}
+          options={CONTACT_POSITION_OPTIONS}
+          required
+          error={errors.contactPosition}
+        />
+
+        <TextField
+          label="SĐT liên hệ"
+          name="contactPhone"
+          type="tel"
+          value={formData.contactPhone}
+          onChange={(v) => {
+            setFormData({ ...formData, contactPhone: v });
+          }}
+          placeholder="0912 345 678"
+          required
+          error={errors.contactPhone}
+        />
+      </div>
+
+      <TextField
+        label="Email liên hệ"
+        name="contactEmail"
+        type="email"
+        value={formData.contactEmail}
+        onChange={(v) => {
+          setFormData({ ...formData, contactEmail: v });
+        }}
+        placeholder="email@company.com (tùy chọn)"
+      />
+
+      <TextField
+        label="Website"
+        name="website"
+        type="url"
+        value={formData.website}
+        onChange={(v) => {
+          setFormData({ ...formData, website: v });
+        }}
+        placeholder="https://example.com (tùy chọn)"
+      />
+
+      <SelectField
+        label="Quy mô nhân sự"
+        name="employeeCount"
+        value={formData.employeeCount}
+        onChange={(v) => {
+          setFormData({ ...formData, employeeCount: v });
+        }}
+        options={EMPLOYEE_COUNT_OPTIONS}
+        required
+        error={errors.employeeCount}
+      />
+
+      <MultiSelect
+        label="Sản phẩm chính"
+        name="mainProducts"
+        value={formData.mainProducts}
+        onChange={(v) => {
+          setFormData({ ...formData, mainProducts: v });
+        }}
+        options={BUSINESS_PRODUCTS}
+        required
+        error={errors.mainProducts}
       />
 
       <button

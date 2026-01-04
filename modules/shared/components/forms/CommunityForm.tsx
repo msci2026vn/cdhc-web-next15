@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { INTEREST_OPTIONS } from "../../data/form-options";
+import { COMMUNITY_INTERESTS } from "../../data/form-options";
 import { LocationSelect, MultiSelect, TextField } from "../ui";
 
 export interface CommunityFormData {
+  fullName: string;
   phone: string;
-  interests: string[];
   provinceCode: string;
   wardCode: string;
+  interests: string[];
 }
 
 interface CommunityFormProps {
@@ -19,12 +20,13 @@ interface CommunityFormProps {
 export function CommunityForm({
   onSubmit,
   isLoading = false,
-}: Readonly<CommunityFormProps>) {
+}: CommunityFormProps) {
   const [formData, setFormData] = useState<CommunityFormData>({
+    fullName: "",
     phone: "",
-    interests: [],
     provinceCode: "",
     wardCode: "",
+    interests: [],
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof CommunityFormData, string>>
@@ -33,9 +35,11 @@ export function CommunityForm({
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof CommunityFormData, string>> = {};
 
-    if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
+    if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ tên";
+    if (!formData.provinceCode)
+      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
     if (formData.interests.length === 0)
-      newErrors.interests = "Vui lòng chọn ít nhất 1 sở thích";
+      newErrors.interests = "Vui lòng chọn ít nhất 1 sản phẩm quan tâm";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -50,6 +54,18 @@ export function CommunityForm({
   return (
     <div className="space-y-1">
       <TextField
+        label="Họ và tên"
+        name="fullName"
+        value={formData.fullName}
+        onChange={(v) => {
+          setFormData({ ...formData, fullName: v });
+        }}
+        placeholder="Nguyễn Văn A"
+        required
+        error={errors.fullName}
+      />
+
+      <TextField
         label="Số điện thoại"
         name="phone"
         type="tel"
@@ -57,22 +73,7 @@ export function CommunityForm({
         onChange={(v) => {
           setFormData({ ...formData, phone: v });
         }}
-        placeholder="0912 345 678"
-        required
-        error={errors.phone}
-      />
-
-      <MultiSelect
-        label="Quan tâm đến"
-        name="interests"
-        value={formData.interests}
-        onChange={(v) => {
-          setFormData({ ...formData, interests: v });
-        }}
-        options={INTEREST_OPTIONS}
-        required
-        maxSelect={4}
-        error={errors.interests}
+        placeholder="0912 345 678 (tùy chọn)"
       />
 
       <LocationSelect
@@ -84,6 +85,20 @@ export function CommunityForm({
         onWardChange={(v) => {
           setFormData({ ...formData, wardCode: v });
         }}
+        required
+        error={errors.provinceCode}
+      />
+
+      <MultiSelect
+        label="Sản phẩm quan tâm"
+        name="interests"
+        value={formData.interests}
+        onChange={(v) => {
+          setFormData({ ...formData, interests: v });
+        }}
+        options={COMMUNITY_INTERESTS}
+        required
+        error={errors.interests}
       />
 
       <button

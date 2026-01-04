@@ -2,22 +2,38 @@
 
 import { useState } from "react";
 import {
-  CERTIFICATE_TYPES,
-  COOP_TYPES,
-  FARMER_PRODUCTS,
-  MEMBER_COUNT_OPTIONS,
+  COOP_CERTIFICATE_TYPES,
+  COOP_EMPLOYEE_COUNT_OPTIONS,
+  COOP_FARM_AREA_OPTIONS,
+  COOP_MEMBER_COUNT_OPTIONS,
+  COOP_POSITION_OPTIONS,
+  COOP_PRODUCTS,
+  ESTABLISHED_YEAR_OPTIONS,
 } from "../../data/form-options";
-import { LocationSelect, MultiSelect, SelectField, TextField } from "../ui";
+import {
+  LocationSelect,
+  MultiSelect,
+  RadioField,
+  SelectField,
+  TextField,
+} from "../ui";
 
 export interface CoopFormData {
-  phone: string;
   coopName: string;
-  coopType: string;
-  memberCount: string;
-  products: string[];
-  certificate: string;
+  coopCode: string;
+  establishedYear: string;
   provinceCode: string;
   wardCode: string;
+  address: string;
+  representativeName: string;
+  representativePosition: string;
+  phone: string;
+  memberCount: string;
+  employeeCount: string;
+  farmArea: string;
+  mainProducts: string[];
+  hasCertificate: string;
+  certificateType: string;
 }
 
 interface CoopFormProps {
@@ -25,19 +41,23 @@ interface CoopFormProps {
   readonly isLoading?: boolean;
 }
 
-export function CoopForm({
-  onSubmit,
-  isLoading = false,
-}: Readonly<CoopFormProps>) {
+export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
   const [formData, setFormData] = useState<CoopFormData>({
-    phone: "",
     coopName: "",
-    coopType: "",
-    memberCount: "",
-    products: [],
-    certificate: "",
+    coopCode: "",
+    establishedYear: "",
     provinceCode: "",
     wardCode: "",
+    address: "",
+    representativeName: "",
+    representativePosition: "",
+    phone: "",
+    memberCount: "",
+    employeeCount: "",
+    farmArea: "",
+    mainProducts: [],
+    hasCertificate: "",
+    certificateType: "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof CoopFormData, string>>
@@ -46,12 +66,30 @@ export function CoopForm({
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof CoopFormData, string>> = {};
 
-    if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
     if (!formData.coopName) newErrors.coopName = "Vui lòng nhập tên HTX";
-    if (!formData.coopType) newErrors.coopType = "Vui lòng chọn loại hình";
-    if (!formData.memberCount) newErrors.memberCount = "Vui lòng chọn quy mô";
+    if (!formData.coopCode) newErrors.coopCode = "Vui lòng nhập mã số HTX";
+    if (!formData.establishedYear)
+      newErrors.establishedYear = "Vui lòng chọn năm thành lập";
     if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn địa điểm";
+      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.address) newErrors.address = "Vui lòng nhập địa chỉ trụ sở";
+    if (!formData.representativeName)
+      newErrors.representativeName = "Vui lòng nhập người đại diện";
+    if (!formData.representativePosition)
+      newErrors.representativePosition = "Vui lòng chọn chức vụ";
+    if (!formData.phone) newErrors.phone = "Vui lòng nhập SĐT";
+    if (!formData.memberCount)
+      newErrors.memberCount = "Vui lòng chọn số thành viên";
+    if (!formData.employeeCount)
+      newErrors.employeeCount = "Vui lòng chọn số lao động";
+    if (!formData.farmArea)
+      newErrors.farmArea = "Vui lòng chọn diện tích canh tác";
+    if (formData.mainProducts.length === 0)
+      newErrors.mainProducts = "Vui lòng chọn ít nhất 1 sản phẩm";
+    if (!formData.hasCertificate)
+      newErrors.hasCertificate = "Vui lòng chọn có/không";
+    if (formData.hasCertificate === "yes" && !formData.certificateType)
+      newErrors.certificateType = "Vui lòng chọn loại chứng nhận";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -66,19 +104,6 @@ export function CoopForm({
   return (
     <div className="space-y-1">
       <TextField
-        label="Số điện thoại"
-        name="phone"
-        type="tel"
-        value={formData.phone}
-        onChange={(v) => {
-          setFormData({ ...formData, phone: v });
-        }}
-        placeholder="0912 345 678"
-        required
-        error={errors.phone}
-      />
-
-      <TextField
         label="Tên Hợp tác xã"
         name="coopName"
         value={formData.coopName}
@@ -90,51 +115,28 @@ export function CoopForm({
         error={errors.coopName}
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
-          label="Loại hình"
-          name="coopType"
-          value={formData.coopType}
-          onChange={(v) => {
-            setFormData({ ...formData, coopType: v });
-          }}
-          options={COOP_TYPES}
-          required
-          error={errors.coopType}
-        />
-
-        <SelectField
-          label="Quy mô thành viên"
-          name="memberCount"
-          value={formData.memberCount}
-          onChange={(v) => {
-            setFormData({ ...formData, memberCount: v });
-          }}
-          options={MEMBER_COUNT_OPTIONS}
-          required
-          error={errors.memberCount}
-        />
-      </div>
-
-      <MultiSelect
-        label="Sản phẩm chính"
-        name="products"
-        value={formData.products}
+      <TextField
+        label="Mã số HTX"
+        name="coopCode"
+        value={formData.coopCode}
         onChange={(v) => {
-          setFormData({ ...formData, products: v });
+          setFormData({ ...formData, coopCode: v });
         }}
-        options={FARMER_PRODUCTS}
-        maxSelect={5}
+        placeholder="0123456789"
+        required
+        error={errors.coopCode}
       />
 
       <SelectField
-        label="Chứng nhận"
-        name="certificate"
-        value={formData.certificate}
+        label="Năm thành lập"
+        name="establishedYear"
+        value={formData.establishedYear}
         onChange={(v) => {
-          setFormData({ ...formData, certificate: v });
+          setFormData({ ...formData, establishedYear: v });
         }}
-        options={CERTIFICATE_TYPES}
+        options={ESTABLISHED_YEAR_OPTIONS}
+        required
+        error={errors.establishedYear}
       />
 
       <LocationSelect
@@ -149,6 +151,140 @@ export function CoopForm({
         required
         error={errors.provinceCode}
       />
+
+      <TextField
+        label="Địa chỉ trụ sở"
+        name="address"
+        value={formData.address}
+        onChange={(v) => {
+          setFormData({ ...formData, address: v });
+        }}
+        placeholder="Số nhà, đường..."
+        required
+        error={errors.address}
+      />
+
+      <TextField
+        label="Người đại diện"
+        name="representativeName"
+        value={formData.representativeName}
+        onChange={(v) => {
+          setFormData({ ...formData, representativeName: v });
+        }}
+        placeholder="Nguyễn Văn A"
+        required
+        error={errors.representativeName}
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Chức vụ"
+          name="representativePosition"
+          value={formData.representativePosition}
+          onChange={(v) => {
+            setFormData({ ...formData, representativePosition: v });
+          }}
+          options={COOP_POSITION_OPTIONS}
+          required
+          error={errors.representativePosition}
+        />
+
+        <TextField
+          label="SĐT liên hệ"
+          name="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={(v) => {
+            setFormData({ ...formData, phone: v });
+          }}
+          placeholder="0912 345 678"
+          required
+          error={errors.phone}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Số thành viên"
+          name="memberCount"
+          value={formData.memberCount}
+          onChange={(v) => {
+            setFormData({ ...formData, memberCount: v });
+          }}
+          options={COOP_MEMBER_COUNT_OPTIONS}
+          required
+          error={errors.memberCount}
+        />
+
+        <SelectField
+          label="Số lao động"
+          name="employeeCount"
+          value={formData.employeeCount}
+          onChange={(v) => {
+            setFormData({ ...formData, employeeCount: v });
+          }}
+          options={COOP_EMPLOYEE_COUNT_OPTIONS}
+          required
+          error={errors.employeeCount}
+        />
+      </div>
+
+      <SelectField
+        label="Diện tích canh tác"
+        name="farmArea"
+        value={formData.farmArea}
+        onChange={(v) => {
+          setFormData({ ...formData, farmArea: v });
+        }}
+        options={COOP_FARM_AREA_OPTIONS}
+        required
+        error={errors.farmArea}
+      />
+
+      <MultiSelect
+        label="Sản phẩm chính"
+        name="mainProducts"
+        value={formData.mainProducts}
+        onChange={(v) => {
+          setFormData({ ...formData, mainProducts: v });
+        }}
+        options={COOP_PRODUCTS}
+        required
+        error={errors.mainProducts}
+      />
+
+      <RadioField
+        label="Đã có chứng nhận hữu cơ?"
+        name="hasCertificate"
+        value={formData.hasCertificate}
+        onChange={(v) => {
+          setFormData({
+            ...formData,
+            hasCertificate: v,
+            certificateType: v === "no" ? "" : formData.certificateType,
+          });
+        }}
+        options={[
+          { value: "yes", label: "Có" },
+          { value: "no", label: "Chưa" },
+        ]}
+        required
+        error={errors.hasCertificate}
+      />
+
+      {formData.hasCertificate === "yes" && (
+        <SelectField
+          label="Loại chứng nhận"
+          name="certificateType"
+          value={formData.certificateType}
+          onChange={(v) => {
+            setFormData({ ...formData, certificateType: v });
+          }}
+          options={COOP_CERTIFICATE_TYPES}
+          required
+          error={errors.certificateType}
+        />
+      )}
 
       <button
         type="button"
