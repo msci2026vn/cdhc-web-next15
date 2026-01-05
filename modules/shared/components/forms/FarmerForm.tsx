@@ -115,7 +115,7 @@ export function FarmerForm({
         name="fullName"
         value={formData.fullName}
         onChange={(v) => {
-          setFormData({ ...formData, fullName: v });
+          setFormData((prev) => ({ ...prev, fullName: v }));
         }}
         placeholder="Nguyễn Văn A"
         required
@@ -134,7 +134,7 @@ export function FarmerForm({
         type="tel"
         value={formData.phone}
         onChange={(v) => {
-          setFormData({ ...formData, phone: v });
+          setFormData((prev) => ({ ...prev, phone: v }));
         }}
         placeholder="0912 345 678"
         required
@@ -153,7 +153,7 @@ export function FarmerForm({
         type="date"
         value={formData.birthDate}
         onChange={(v) => {
-          setFormData({ ...formData, birthDate: v });
+          setFormData((prev) => ({ ...prev, birthDate: v }));
         }}
         disabled={isLegacyUser && !!initialData?.birthDate}
         helperText={
@@ -167,10 +167,10 @@ export function FarmerForm({
         provinceCode={formData.province}
         wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, province: v, ward: "" });
+          setFormData((prev) => ({ ...prev, province: v, ward: "" }));
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, ward: v });
+          setFormData((prev) => ({ ...prev, ward: v }));
         }}
         required
         error={errors.province}
@@ -181,7 +181,7 @@ export function FarmerForm({
         name="address"
         value={formData.address}
         onChange={(v) => {
-          setFormData({ ...formData, address: v });
+          setFormData((prev) => ({ ...prev, address: v }));
         }}
         placeholder="Số nhà, thôn/ấp..."
       />
@@ -192,7 +192,8 @@ export function FarmerForm({
         value={formData.farmSize}
         otherValue=""
         onChange={(v) => {
-          setFormData({ ...formData, farmSize: v });
+          console.log("[FarmerForm] farmSize onChange:", v);
+          setFormData((prev) => ({ ...prev, farmSize: v }));
         }}
         onOtherChange={() => {}}
         options={FARM_SIZE_OPTIONS}
@@ -205,7 +206,7 @@ export function FarmerForm({
         name="farmType"
         value={formData.farmType}
         onChange={(v) => {
-          setFormData({ ...formData, farmType: v });
+          setFormData((prev) => ({ ...prev, farmType: v }));
         }}
         options={FARM_TYPE_OPTIONS}
         required
@@ -218,10 +219,10 @@ export function FarmerForm({
         value={formData.mainProducts}
         otherValue={formData.mainProductsOther}
         onChange={(v) => {
-          setFormData({ ...formData, mainProducts: v });
+          setFormData((prev) => ({ ...prev, mainProducts: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, mainProductsOther: v });
+          setFormData((prev) => ({ ...prev, mainProductsOther: v }));
         }}
         options={FARMER_PRODUCTS}
         required
@@ -234,13 +235,12 @@ export function FarmerForm({
         name="hasCertificate"
         value={formData.hasCertificate}
         onChange={(v) => {
-          setFormData({
-            ...formData,
+          setFormData((prev) => ({
+            ...prev,
             hasCertificate: v,
-            certificateType: v === "no" ? "" : formData.certificateType,
-            certificateTypeOther:
-              v === "no" ? "" : formData.certificateTypeOther,
-          });
+            certificateType: v === "no" ? "" : prev.certificateType,
+            certificateTypeOther: v === "no" ? "" : prev.certificateTypeOther,
+          }));
         }}
         options={[
           { value: "yes", label: "Có" },
@@ -258,11 +258,10 @@ export function FarmerForm({
           otherValue={formData.certificateTypeOther}
           onChange={(v) => {
             console.log("[FarmerForm] certificateType onChange:", v);
-            console.log("[FarmerForm] current formData:", formData);
-            setFormData({ ...formData, certificateType: v });
+            setFormData((prev) => ({ ...prev, certificateType: v }));
           }}
           onOtherChange={(v) => {
-            setFormData({ ...formData, certificateTypeOther: v });
+            setFormData((prev) => ({ ...prev, certificateTypeOther: v }));
           }}
           options={CERTIFICATE_TYPES}
           required
