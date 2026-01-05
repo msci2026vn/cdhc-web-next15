@@ -31,3 +31,54 @@ export interface GoogleAuthResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+// ===== CAPTCHA TYPES =====
+export interface CaptchaChallenge {
+  token: string;
+  question: string;
+  hint: string;
+  options: number[];
+}
+
+export interface CaptchaState {
+  challenge: CaptchaChallenge | null;
+  selected: number | null;
+  loading: boolean;
+  error: string | null;
+}
+
+// ===== LEGACY LOOKUP TYPES =====
+export interface LegacyAccount {
+  name: string;
+  rank: string;
+  shares: number;
+  ogn: number;
+  tor: number;
+  f1Total: number;
+}
+
+export interface LegacyLookupRequest {
+  email: string;
+  phone: string;
+  captchaToken?: string;
+  captchaAnswer?: number;
+}
+
+export type LegacyErrorCode =
+  | "CAPTCHA_REQUIRED"
+  | "CAPTCHA_WRONG"
+  | "CAPTCHA_EXPIRED"
+  | "NOT_FOUND"
+  | "VALIDATION_ERROR"
+  | "SERVER_ERROR";
+
+export interface LegacyApiError {
+  code: LegacyErrorCode;
+  message: string;
+}
+
+export interface LegacyLookupResponse {
+  success: boolean;
+  data?: LegacyAccount;
+  error?: LegacyApiError;
+}

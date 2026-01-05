@@ -1,4 +1,5 @@
 export { LocationSelect } from "./LocationSelect";
+export { MathCaptcha } from "./MathCaptcha";
 export { MultiSelect } from "./MultiSelect";
 export { MultiSelectWithOther } from "./MultiSelectWithOther";
 export type { PlatformLink } from "./PlatformLinks";
