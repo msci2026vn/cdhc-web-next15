@@ -45,7 +45,7 @@ export default function LegacyLookupPage() {
     if (phone.length < 10) return "Số điện thoại phải có ít nhất 10 số";
     const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
     if (!phoneRegex.test(phone))
-      return "Số điện thoại không hợp lệ (VD: 0979399882)";
+      return "Số điện thoại không hợp lệ (VD: 0988666999)";
     return undefined;
   };
 
@@ -185,7 +185,7 @@ export default function LegacyLookupPage() {
               type="tel"
               value={formData.phone}
               onChange={(v) => handleFieldChange("phone", v)}
-              placeholder="0979399882"
+              placeholder="0988666999"
               required
               error={errors.phone}
               disabled={loading}
@@ -395,10 +395,7 @@ export default function LegacyLookupPage() {
               CAPTCHA
             </li>
             <li>
-              • Nếu gặp khó khăn, vui lòng liên hệ hỗ trợ:{" "}
-              <a href="tel:0979399882" className="text-green-600 font-medium">
-                0979-399-882
-              </a>
+              • Nếu gặp khó khăn, vui lòng liên hệ hỗ trợ: Zalo (Đang cập nhật)
             </li>
           </ul>
         </div>

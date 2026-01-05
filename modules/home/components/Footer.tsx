@@ -132,6 +132,18 @@ export function Footer() {
           </div>
         </div>
 
+        {/* CTA Button */}
+        <div className="mb-12 flex justify-center">
+          <Link
+            href="/tra-cuu-tai-khoan"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+          >
+            <span className="text-2xl">🔍</span>
+            <span>Tra Cứu Tài Khoản Cũ</span>
+            <span className="text-xl">→</span>
+          </Link>
+        </div>
+
         {/* Bottom */}
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
