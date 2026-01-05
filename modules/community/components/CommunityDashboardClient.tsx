@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getInterestLabels,
   getProvinceName,
   getWardName,
 } from "@/modules/shared";
 import { LegacyDataCard } from "@/modules/shared/components/dashboard/LegacyDataCard";
+import { PointsConversionSection } from "./PointsConversionSection";
 
 // ===== TYPES =====
 interface ProfileData {
@@ -44,57 +45,83 @@ export function CommunityDashboardClient() {
   const [wardName, setWardName] = useState<string>("");
 
   // ===== FETCH PROFILE DATA =====
-  useEffect(() => {
-    const fetchProfile = async () => {
-      // Get token from localStorage
-      const token = localStorage.getItem("accessToken");
+  const fetchProfile = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
 
-      if (!token) {
-        router.push("/login");
-        return;
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/data`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+          router.push("/login");
+          return;
+        }
+        throw new Error("Failed to fetch profile");
       }
 
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/data`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+      const data = await response.json();
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            // Token expired
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("user");
-            router.push("/login");
-            return;
-          }
-          throw new Error("Failed to fetch profile");
+      if (data.success && data.profile) {
+        setProfile(data.profile);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (err: any) {
+      console.error("Error fetching profile:", err);
+      setError(err.message || "Failed to load profile");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  // ===== REFRESH PROFILE (for points conversion) =====
+  const refreshProfile = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/data`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
+      );
 
+      if (response.ok) {
         const data = await response.json();
-
         if (data.success && data.profile) {
           setProfile(data.profile);
-        } else {
-          throw new Error("Invalid response format");
         }
-      } catch (err: any) {
-        console.error("Error fetching profile:", err);
-        setError(err.message || "Failed to load profile");
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    fetchProfile();
-  }, [router]);
+    } catch (err) {
+      console.error("Error refreshing profile:", err);
+    }
+  }, []);
 
   // ===== FETCH LOCATION NAMES =====
   useEffect(() => {
@@ -153,6 +180,12 @@ export function CommunityDashboardClient() {
       <div className="space-y-6">
         {/* ===== LEGACY DATA CARD ===== */}
         <LegacyDataCard profile={profile} />
+
+        {/* ===== POINTS CONVERSION SECTION ===== */}
+        <PointsConversionSection
+          profile={profile}
+          onConversionSuccess={refreshProfile}
+        />
 
         {/* ===== REGULAR PROFILE CARD ===== */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
