@@ -9,6 +9,7 @@
  * Easy to delete: Just remove this file + revert dashboard import
  *
  * @created 2026-01-05
+ * @updated 2026-01-05 - Fixed: Vietnamese diacritics, status display, collapse UI
  * @strategy QUICK & DIRTY - easy to remove after 2-3 months
  */
 
@@ -23,7 +24,7 @@ interface ConversionHistory {
   fromType: "ogn" | "tor";
   fromAmount: number;
   toAmount: number;
-  status: "success" | "failed" | "pending";
+  status: string; // Can be 'success', 'failed', 'pending', or undefined
   createdAt: string;
 }
 
@@ -63,7 +64,7 @@ const getAuthHeaders = (): HeadersInit => {
 const parseNumber = (value: string | number | null | undefined): number => {
   if (!value) return 0;
   const num = typeof value === "string" ? parseFloat(value) : value;
-  return isNaN(num) ? 0 : num;
+  return Number.isNaN(num) ? 0 : num;
 };
 
 const formatNumber = (value: number): string => {
@@ -80,6 +81,27 @@ const formatDateTime = (dateString: string): string => {
   });
 };
 
+/**
+ * FIX #2: Normalize status để handle edge cases
+ * Default to 'success' nếu status undefined/null/empty
+ */
+const getStatusDisplay = (status: string | undefined | null) => {
+  const normalizedStatus = (status || "success").toLowerCase().trim();
+  const isSuccess = normalizedStatus === "success";
+  const isPending = normalizedStatus === "pending";
+
+  return {
+    isSuccess,
+    isPending,
+    bgClass: isSuccess
+      ? "bg-green-100 text-green-800"
+      : isPending
+        ? "bg-yellow-100 text-yellow-800"
+        : "bg-red-100 text-red-800",
+    label: isSuccess ? "Thành công" : isPending ? "Đang xử lý" : "Thất bại",
+  };
+};
+
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
@@ -93,6 +115,9 @@ export function PointsConversionSection({
   const [amount, setAmount] = useState("");
   const [isConverting, setIsConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ===== FIX #3: COLLAPSE STATE =====
+  const [isSectionExpanded, setIsSectionExpanded] = useState(false);
 
   // ===== HISTORY STATE =====
   const [history, setHistory] = useState<ConversionHistory[]>([]);
@@ -133,7 +158,7 @@ export function PointsConversionSection({
           window.location.href = "/login";
           return;
         }
-        throw new Error("Khong the tai lich su");
+        throw new Error("Không thể tải lịch sử");
       }
 
       const data = await response.json();
@@ -143,11 +168,13 @@ export function PointsConversionSection({
         setPage(data.pagination?.page || 1);
         setTotalPages(data.pagination?.totalPages || 1);
       } else {
-        throw new Error(data.message || "Khong the tai lich su");
+        throw new Error(data.message || "Không thể tải lịch sử");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Không thể tải lịch sử";
       console.error("Failed to load history:", err);
-      setHistoryError(err.message || "Khong the tai lich su");
+      setHistoryError(message);
       setHistory([]);
     } finally {
       setIsLoadingHistory(false);
@@ -165,13 +192,13 @@ export function PointsConversionSection({
 
     // Validation
     if (!amount || inputAmount <= 0) {
-      setError("Vui long nhap so diem hop le");
+      setError("Vui lòng nhập số điểm hợp lệ");
       return;
     }
 
     if (inputAmount > maxAmount) {
       setError(
-        `Khong du ${convertType.toUpperCase()}. Ban chi co ${formatNumber(maxAmount)}`
+        `Không đủ ${convertType.toUpperCase()}. Bạn chỉ có ${formatNumber(maxAmount)}`
       );
       return;
     }
@@ -197,18 +224,18 @@ export function PointsConversionSection({
         }
 
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Doi diem that bai");
+        throw new Error(errorData.error?.message || "Đổi điểm thất bại");
       }
 
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || "Doi diem that bai");
+        throw new Error(data.message || "Đổi điểm thất bại");
       }
 
-      // Success
+      // Success - FIX #1: Vietnamese with diacritics
       toast.success(
-        `Doi ${formatNumber(inputAmount)} ${convertType.toUpperCase()} thanh ${formatNumber(willReceive)} CPO thanh cong!`
+        `Đổi ${formatNumber(inputAmount)} ${convertType.toUpperCase()} thành ${formatNumber(willReceive)} CPO thành công!`
       );
 
       // Reset modal
@@ -219,9 +246,10 @@ export function PointsConversionSection({
       // Refresh data
       onConversionSuccess();
       loadHistory(1);
-    } catch (err: any) {
-      setError(err.message || "Doi diem that bai");
-      toast.error(err.message || "Doi diem that bai");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Đổi điểm thất bại";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsConverting(false);
     }
@@ -255,6 +283,19 @@ export function PointsConversionSection({
     }
   };
 
+  // FIX #3: Handle button click - expand section and open modal
+  const handleConvertButtonClick = () => {
+    if (!isSectionExpanded) {
+      setIsSectionExpanded(true);
+      // Delay modal open để section expand trước
+      setTimeout(() => {
+        handleOpenModal();
+      }, 300);
+    } else {
+      handleOpenModal();
+    }
+  };
+
   // ===== DON'T RENDER IF NO LEGACY DATA =====
   if (!profile?.legacyOgn && !profile?.legacyTor) {
     return null;
@@ -271,48 +312,50 @@ export function PointsConversionSection({
           <div>
             <h3 className="text-lg font-bold text-green-900 flex items-center gap-2">
               <span className="text-2xl">💱</span>
-              Doi diem lay CPO
+              Đổi điểm lấy CPO
             </h3>
             <p className="text-sm text-green-700 mt-1">
-              Doi diem OGN hoac TOR thanh CPO voi ty le 1:1
+              Đổi điểm OGN hoặc TOR thành CPO với tỷ lệ 1:1
             </p>
           </div>
           <button
             type="button"
-            onClick={handleOpenModal}
+            onClick={handleConvertButtonClick}
             className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg"
           >
-            Doi diem ngay
+            Đổi điểm ngay
           </button>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-              Diem OGN
-            </p>
-            <p className="text-lg font-bold text-orange-600">
-              {formatNumber(currentOgn)}
-            </p>
+        {/* FIX #3: Quick Stats - Chỉ hiển thị khi expanded */}
+        {isSectionExpanded && (
+          <div className="grid grid-cols-3 gap-4 mt-6 transition-all duration-300 ease-in-out">
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                Điểm OGN
+              </p>
+              <p className="text-lg font-bold text-orange-600">
+                {formatNumber(currentOgn)}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                Điểm TOR
+              </p>
+              <p className="text-lg font-bold text-pink-600">
+                {formatNumber(currentTor)}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                Số CPO
+              </p>
+              <p className="text-lg font-bold text-green-600">
+                {formatNumber(currentCpo)}
+              </p>
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-              Diem TOR
-            </p>
-            <p className="text-lg font-bold text-pink-600">
-              {formatNumber(currentTor)}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-              So CPO
-            </p>
-            <p className="text-lg font-bold text-green-600">
-              {formatNumber(currentCpo)}
-            </p>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ========================================= */}
@@ -325,7 +368,7 @@ export function PointsConversionSection({
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <span className="text-2xl">💱</span>
-                Doi diem
+                Đổi điểm
               </h3>
               <button
                 type="button"
@@ -340,7 +383,7 @@ export function PointsConversionSection({
             {/* Type Selection */}
             <div className="mb-5">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chon loai diem muon doi
+                Chọn loại điểm muốn đổi
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -358,9 +401,9 @@ export function PointsConversionSection({
                   } ${currentOgn <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <div className="text-2xl mb-1">🔶</div>
-                  <div className="font-semibold text-gray-900">Diem OGN</div>
+                  <div className="font-semibold text-gray-900">Điểm OGN</div>
                   <div className="text-sm text-gray-600">
-                    Co: {formatNumber(currentOgn)}
+                    Có: {formatNumber(currentOgn)}
                   </div>
                 </button>
                 <button
@@ -378,9 +421,9 @@ export function PointsConversionSection({
                   } ${currentTor <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <div className="text-2xl mb-1">💎</div>
-                  <div className="font-semibold text-gray-900">Diem TOR</div>
+                  <div className="font-semibold text-gray-900">Điểm TOR</div>
                   <div className="text-sm text-gray-600">
-                    Co: {formatNumber(currentTor)}
+                    Có: {formatNumber(currentTor)}
                   </div>
                 </button>
               </div>
@@ -389,7 +432,7 @@ export function PointsConversionSection({
             {/* Amount Input */}
             <div className="mb-5">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                So diem muon doi
+                Số điểm muốn đổi
               </label>
               <div className="relative">
                 <input
@@ -397,7 +440,7 @@ export function PointsConversionSection({
                   inputMode="numeric"
                   value={amount}
                   onChange={handleAmountChange}
-                  placeholder="Nhap so diem"
+                  placeholder="Nhập số điểm"
                   disabled={isConverting}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
                 />
@@ -407,11 +450,11 @@ export function PointsConversionSection({
                   disabled={isConverting || maxAmount <= 0}
                   className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm text-green-600 hover:text-green-700 font-semibold hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  Tat ca
+                  Tất cả
                 </button>
               </div>
               <div className="mt-1 text-xs text-gray-500">
-                Toi da: {formatNumber(maxAmount)} {convertType.toUpperCase()}
+                Tối đa: {formatNumber(maxAmount)} {convertType.toUpperCase()}
               </div>
             </div>
 
@@ -419,17 +462,17 @@ export function PointsConversionSection({
             {inputAmount > 0 && (
               <div className="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="text-sm font-medium text-gray-700 mb-3">
-                  Xem truoc:
+                  Xem trước:
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Doi:</span>
+                    <span className="text-gray-600">Đổi:</span>
                     <span className="font-bold text-red-600">
                       -{formatNumber(inputAmount)} {convertType.toUpperCase()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Nhan duoc:</span>
+                    <span className="text-gray-600">Nhận được:</span>
                     <span className="font-bold text-green-600">
                       +{formatNumber(willReceive)} CPO
                     </span>
@@ -437,14 +480,14 @@ export function PointsConversionSection({
                   <div className="border-t border-gray-300 my-2" />
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">
-                      {convertType.toUpperCase()} con lai:
+                      {convertType.toUpperCase()} còn lại:
                     </span>
                     <span className="font-semibold text-gray-900">
                       {formatNumber(Math.max(0, remaining))}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Tong CPO moi:</span>
+                    <span className="text-gray-600">Tổng CPO mới:</span>
                     <span className="font-bold text-green-700 text-lg">
                       {formatNumber(newCpo)}
                     </span>
@@ -469,7 +512,7 @@ export function PointsConversionSection({
                 disabled={isConverting}
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
-                Huy
+                Hủy
               </button>
               <button
                 type="button"
@@ -499,17 +542,17 @@ export function PointsConversionSection({
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Dang xu ly...
+                    Đang xử lý...
                   </span>
                 ) : (
-                  "Xac nhan doi"
+                  "Xác nhận đổi"
                 )}
               </button>
             </div>
 
             {/* Info */}
             <div className="mt-4 text-xs text-gray-500 text-center">
-              Ty le doi: 1 {convertType.toUpperCase()} = {rate} CPO
+              Tỷ lệ đổi: 1 {convertType.toUpperCase()} = {rate} CPO
             </div>
           </div>
         </div>
@@ -521,13 +564,13 @@ export function PointsConversionSection({
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <span className="text-xl">📜</span>
-          Lich su doi diem
+          Lịch sử đổi điểm
         </h3>
 
         {isLoadingHistory ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mx-auto mb-3" />
-            <p className="text-gray-500">Dang tai lich su...</p>
+            <p className="text-gray-500">Đang tải lịch sử...</p>
           </div>
         ) : historyError ? (
           <div className="text-center py-12">
@@ -537,13 +580,13 @@ export function PointsConversionSection({
               onClick={() => loadHistory(1)}
               className="px-4 py-2 text-green-600 hover:text-green-700 font-semibold"
             >
-              Thu lai
+              Thử lại
             </button>
           </div>
         ) : history.length === 0 ? (
           <div className="text-center py-12">
             <span className="text-4xl mb-3 block">📭</span>
-            <p className="text-gray-500">Chua co giao dich doi diem nao</p>
+            <p className="text-gray-500">Chưa có giao dịch đổi điểm nào</p>
           </div>
         ) : (
           <>
@@ -553,116 +596,106 @@ export function PointsConversionSection({
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Thoi gian
+                      Thời gian
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Loai
+                      Loại
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      So diem doi
+                      Số điểm đổi
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      CPO nhan
+                      CPO nhận
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Trang thai
+                      Trạng thái
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {history.map((conv) => (
-                    <tr key={conv.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDateTime(conv.createdAt)}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            conv.fromType === "ogn"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-pink-100 text-pink-800"
-                          }`}
-                        >
-                          {conv.fromType.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-right font-medium text-red-600">
-                        -{formatNumber(conv.fromAmount)}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-right font-medium text-green-600">
-                        +{formatNumber(conv.toAmount)}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-center">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            conv.status === "success"
-                              ? "bg-green-100 text-green-800"
-                              : conv.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {conv.status === "success"
-                            ? "Thanh cong"
-                            : conv.status === "pending"
-                              ? "Dang xu ly"
-                              : "That bai"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {history.map((conv) => {
+                    // FIX #2: Use helper function for status
+                    const statusDisplay = getStatusDisplay(conv.status);
+
+                    return (
+                      <tr key={conv.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatDateTime(conv.createdAt)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              conv.fromType === "ogn"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-pink-100 text-pink-800"
+                            }`}
+                          >
+                            {conv.fromType.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-right font-medium text-red-600">
+                          -{formatNumber(conv.fromAmount)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-right font-medium text-green-600">
+                          +{formatNumber(conv.toAmount)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-center">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusDisplay.bgClass}`}
+                          >
+                            {statusDisplay.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Cards - Mobile */}
             <div className="md:hidden space-y-3">
-              {history.map((conv) => (
-                <div
-                  key={conv.id}
-                  className="bg-gray-50 rounded-xl p-4 border border-gray-200"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        conv.fromType === "ogn"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-pink-100 text-pink-800"
-                      }`}
-                    >
-                      {conv.fromType.toUpperCase()}
-                    </span>
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        conv.status === "success"
-                          ? "bg-green-100 text-green-800"
-                          : conv.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {conv.status === "success"
-                        ? "Thanh cong"
-                        : conv.status === "pending"
-                          ? "Dang xu ly"
-                          : "That bai"}
-                    </span>
+              {history.map((conv) => {
+                // FIX #2: Use helper function for status
+                const statusDisplay = getStatusDisplay(conv.status);
+
+                return (
+                  <div
+                    key={conv.id}
+                    className="bg-gray-50 rounded-xl p-4 border border-gray-200"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          conv.fromType === "ogn"
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-pink-100 text-pink-800"
+                        }`}
+                      >
+                        {conv.fromType.toUpperCase()}
+                      </span>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusDisplay.bgClass}`}
+                      >
+                        {statusDisplay.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-red-600 font-medium">
+                        -{formatNumber(conv.fromAmount)}{" "}
+                        {conv.fromType.toUpperCase()}
+                      </span>
+                      <span className="text-gray-400">→</span>
+                      <span className="text-green-600 font-medium">
+                        +{formatNumber(conv.toAmount)} CPO
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      {formatDateTime(conv.createdAt)}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-red-600 font-medium">
-                      -{formatNumber(conv.fromAmount)}{" "}
-                      {conv.fromType.toUpperCase()}
-                    </span>
-                    <span className="text-gray-400">→</span>
-                    <span className="text-green-600 font-medium">
-                      +{formatNumber(conv.toAmount)} CPO
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    {formatDateTime(conv.createdAt)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Pagination */}
@@ -678,7 +711,7 @@ export function PointsConversionSection({
                     disabled={page === 1 || isLoadingHistory}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
                   >
-                    ← Truoc
+                    ← Trước
                   </button>
                   <button
                     type="button"
