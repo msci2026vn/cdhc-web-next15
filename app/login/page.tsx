@@ -274,6 +274,13 @@ export default function LoginPage() {
           toast.success(`🎉 Chào mừng ${data.legacyData.name} quay trở lại!`, {
             description: `Cấp bậc: ${data.legacyData.rank} - Cổ phần: ${data.legacyData.shares.toLocaleString()}`,
           });
+
+          // SKIP role modal, show form directly
+          setShowRoleModal(false);
+          // Assuming step 2 is showing the profile form
+          setStep(2);
+          setShowRoleModal(true); // Re-using modal for form, just updated step
+          return;
         } else {
           setLegacyData(null);
         }
@@ -406,20 +413,23 @@ export default function LoginPage() {
 
     const legacyProps = legacyData
       ? {
-        isLegacyUser: true,
-        initialData: {
-          fullName: legacyData.name,
-          phone: legacyData.phone,
-          birthDate: legacyData.dob,
-          contactName: legacyData.name,
-          contactPhone: legacyData.phone,
-          contactBirthDate: legacyData.dob,
-        },
-      }
+          isLegacyUser: true,
+          initialData: {
+            fullName: legacyData.name,
+            phone: legacyData.phone,
+            birthDate: legacyData.dob,
+            contactName: legacyData.name,
+            contactPhone: legacyData.phone,
+            contactBirthDate: legacyData.dob,
+            rank: legacyData.rank,
+            shares: legacyData.shares,
+            f1_total: legacyData.f1_total,
+          },
+        }
       : {
-        isLegacyUser: false, // Explicitly false for type safety
-        initialData: undefined,
-      };
+          isLegacyUser: false, // Explicitly false for type safety
+          initialData: undefined,
+        };
 
     // Dynamic props are hard to type strictly without intersection types
     const formProps = { ...baseProps, ...legacyProps };
@@ -585,10 +595,11 @@ export default function LoginPage() {
                           setSelectedRole(role.value);
                           setError(null);
                         }}
-                        className={`p-4 border-2 rounded-xl transition-all text-left relative ${isSelected
+                        className={`p-4 border-2 rounded-xl transition-all text-left relative ${
+                          isSelected
                             ? "border-green-500 bg-green-50"
                             : "border-slate-200 hover:border-green-300"
-                          } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                        } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         {isSelected && (
                           <span className="absolute -top-2 -right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
@@ -647,10 +658,11 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleContinueToStep2}
                     disabled={!selectedRole || isLoading}
-                    className={`flex-1 py-3 rounded-full font-semibold text-white transition-all ${selectedRole && !isLoading
+                    className={`flex-1 py-3 rounded-full font-semibold text-white transition-all ${
+                      selectedRole && !isLoading
                         ? "gradient-primary hover:shadow-lg"
                         : "bg-slate-300 cursor-not-allowed"
-                      }`}
+                    }`}
                   >
                     Tiếp tục
                   </button>
