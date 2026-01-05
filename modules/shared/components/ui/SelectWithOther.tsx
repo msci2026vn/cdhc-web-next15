@@ -45,12 +45,14 @@ export function SelectWithOther({
         name={name}
         value={value}
         onChange={(e) => {
+          e.stopPropagation();
           onChange(e.target.value);
           if (e.target.value !== "other") {
             onOtherChange("");
           }
         }}
-        className={`w-full px-4 py-3 border-2 rounded-xl transition-colors focus:outline-none focus:border-green-500 appearance-none bg-white ${
+        onMouseDown={(e) => e.stopPropagation()}
+        className={`w-full px-4 py-3 border-2 rounded-xl transition-colors focus:outline-none focus:border-green-500 bg-white cursor-pointer ${
           error ? "border-red-300 bg-red-50" : "border-slate-200"
         }`}
       >
