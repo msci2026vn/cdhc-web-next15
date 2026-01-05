@@ -37,30 +37,34 @@ export interface BusinessFormData {
 interface BusinessFormProps {
   readonly onSubmit: (data: BusinessFormData) => void;
   readonly isLoading?: boolean;
+  readonly initialData?: Partial<BusinessFormData>;
+  readonly isLegacyUser?: boolean;
 }
 
 export function BusinessForm({
   onSubmit,
   isLoading = false,
+  initialData,
+  isLegacyUser,
 }: BusinessFormProps) {
   const [formData, setFormData] = useState<BusinessFormData>({
-    companyName: "",
-    taxCode: "",
-    businessType: "",
-    businessTypeOther: "",
-    provinceCode: "",
-    wardCode: "",
-    address: "",
-    contactName: "",
-    contactBirthDate: "",
-    contactPosition: "",
-    contactPositionOther: "",
-    contactPhone: "",
-    contactEmail: "",
-    website: "",
-    employeeCount: "",
-    mainProducts: [],
-    mainProductsOther: "",
+    companyName: initialData?.companyName || "",
+    taxCode: initialData?.taxCode || "",
+    businessType: initialData?.businessType || "",
+    businessTypeOther: initialData?.businessTypeOther || "",
+    provinceCode: initialData?.provinceCode || "",
+    wardCode: initialData?.wardCode || "",
+    address: initialData?.address || "",
+    contactName: initialData?.contactName || "",
+    contactBirthDate: initialData?.contactBirthDate || "",
+    contactPosition: initialData?.contactPosition || "",
+    contactPositionOther: initialData?.contactPositionOther || "",
+    contactPhone: initialData?.contactPhone || "",
+    contactEmail: initialData?.contactEmail || "",
+    website: initialData?.website || "",
+    employeeCount: initialData?.employeeCount || "",
+    mainProducts: initialData?.mainProducts || [],
+    mainProductsOther: initialData?.mainProductsOther || "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof BusinessFormData, string>>
@@ -101,6 +105,24 @@ export function BusinessForm({
 
   return (
     <div className="space-y-1">
+      {/* ===== LEGACY USER BANNER ===== */}
+      {isLegacyUser && (
+        <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200 shadow-sm mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-3xl">🎉</span>
+            <div className="flex-1">
+              <h3 className="font-bold text-green-900 text-lg mb-1">
+                Chào mừng thành viên cũ quay trở lại!
+              </h3>
+              <p className="text-sm text-green-700 leading-relaxed">
+                Hệ thống đã tự động điền thông tin người liên hệ từ tài khoản
+                cũ. Vui lòng bổ sung thông tin doanh nghiệp.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <TextField
         label="Tên công ty"
         name="companyName"
@@ -176,6 +198,12 @@ export function BusinessForm({
         placeholder="Nguyễn Văn A"
         required
         error={errors.contactName}
+        disabled={isLegacyUser}
+        helperText={
+          isLegacyUser
+            ? "📌 Thông tin từ hệ thống cũ (không thể thay đổi)"
+            : undefined
+        }
       />
 
       <TextField
@@ -186,6 +214,12 @@ export function BusinessForm({
         onChange={(v) => {
           setFormData({ ...formData, contactBirthDate: v });
         }}
+        disabled={isLegacyUser && !!initialData?.contactBirthDate}
+        helperText={
+          isLegacyUser && !!initialData?.contactBirthDate
+            ? "📌 Thông tin từ hệ thống cũ"
+            : undefined
+        }
       />
 
       <div className="grid grid-cols-2 gap-3">
@@ -216,6 +250,8 @@ export function BusinessForm({
           placeholder="0912 345 678"
           required
           error={errors.contactPhone}
+          disabled={isLegacyUser}
+          helperText={isLegacyUser ? "📌 Thông tin từ hệ thống cũ" : undefined}
         />
       </div>
 
@@ -283,7 +319,11 @@ export function BusinessForm({
             : "gradient-primary hover:shadow-lg"
         }`}
       >
-        {isLoading ? "Đang xử lý..." : "Hoàn tất đăng ký"}
+        {isLoading
+          ? "Đang xử lý..."
+          : isLegacyUser
+            ? "Khôi phục tài khoản"
+            : "Hoàn tất đăng ký"}
       </button>
     </div>
   );

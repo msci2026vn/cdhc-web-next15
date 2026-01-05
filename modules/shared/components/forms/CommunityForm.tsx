@@ -17,20 +17,24 @@ export interface CommunityFormData {
 interface CommunityFormProps {
   readonly onSubmit: (data: CommunityFormData) => void;
   readonly isLoading?: boolean;
+  readonly initialData?: Partial<CommunityFormData>;
+  readonly isLegacyUser?: boolean;
 }
 
 export function CommunityForm({
   onSubmit,
   isLoading = false,
+  initialData,
+  isLegacyUser,
 }: CommunityFormProps) {
   const [formData, setFormData] = useState<CommunityFormData>({
-    fullName: "",
-    phone: "",
-    birthDate: "",
-    provinceCode: "",
-    wardCode: "",
-    interests: [],
-    interestsOther: "",
+    fullName: initialData?.fullName || "",
+    phone: initialData?.phone || "",
+    birthDate: initialData?.birthDate || "",
+    provinceCode: initialData?.provinceCode || "",
+    wardCode: initialData?.wardCode || "",
+    interests: initialData?.interests || [],
+    interestsOther: initialData?.interestsOther || "",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof CommunityFormData, string>>
@@ -57,6 +61,24 @@ export function CommunityForm({
 
   return (
     <div className="space-y-1">
+      {/* ===== LEGACY USER BANNER ===== */}
+      {isLegacyUser && (
+        <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200 shadow-sm mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-3xl">🎉</span>
+            <div className="flex-1">
+              <h3 className="font-bold text-green-900 text-lg mb-1">
+                Chào mừng thành viên cũ quay trở lại!
+              </h3>
+              <p className="text-sm text-green-700 leading-relaxed">
+                Hệ thống đã tự động điền thông tin của bạn từ tài khoản cũ. Vui
+                lòng kiểm tra và bổ sung thông tin còn thiếu.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <TextField
         label="Họ và tên"
         name="fullName"
@@ -67,6 +89,12 @@ export function CommunityForm({
         placeholder="Nguyễn Văn A"
         required
         error={errors.fullName}
+        disabled={isLegacyUser}
+        helperText={
+          isLegacyUser
+            ? "📌 Thông tin từ hệ thống cũ (không thể thay đổi)"
+            : undefined
+        }
       />
 
       <TextField
@@ -78,6 +106,12 @@ export function CommunityForm({
           setFormData({ ...formData, phone: v });
         }}
         placeholder="0912 345 678 (tùy chọn)"
+        disabled={isLegacyUser}
+        helperText={
+          isLegacyUser
+            ? "📌 Thông tin từ hệ thống cũ (không thể thay đổi)"
+            : undefined
+        }
       />
 
       <TextField
@@ -88,6 +122,12 @@ export function CommunityForm({
         onChange={(v) => {
           setFormData({ ...formData, birthDate: v });
         }}
+        disabled={isLegacyUser && !!initialData?.birthDate}
+        helperText={
+          isLegacyUser && !!initialData?.birthDate
+            ? "📌 Thông tin từ hệ thống cũ"
+            : undefined
+        }
       />
 
       <LocationSelect
@@ -129,7 +169,11 @@ export function CommunityForm({
             : "gradient-primary hover:shadow-lg"
         }`}
       >
-        {isLoading ? "Đang xử lý..." : "Hoàn tất đăng ký"}
+        {isLoading
+          ? "Đang xử lý..."
+          : isLegacyUser
+            ? "Khôi phục tài khoản"
+            : "Hoàn tất đăng ký"}
       </button>
     </div>
   );

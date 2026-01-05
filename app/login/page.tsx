@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type {
   BusinessFormData,
   CommunityFormData,
@@ -67,7 +68,42 @@ type ProfileData =
   | ShopFormData
   | ExpertFormData
   | KolFormData
+  | KolFormData
   | KocFormData;
+
+// ===== LEGACY USER TYPES =====
+interface LegacyData {
+  name: string;
+  phone: string;
+  rank: string;
+  shares: number;
+  ogn: number;
+  tor: number;
+  f1_total: number;
+  dob: string;
+  joined: string;
+  f1s?: Array<{
+    id: string;
+    n: string;
+    p: string;
+  }>;
+}
+
+interface GoogleAuthResponse {
+  success: boolean;
+  message?: string;
+  needRegister?: boolean;
+  isLegacyUser?: boolean;
+  legacyData?: LegacyData;
+  googleUser?: GoogleUser;
+  user?: User;
+  accessToken?: string;
+  refreshToken?: string;
+  error?: {
+    code: string;
+    message: string;
+  };
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
 
@@ -113,6 +149,7 @@ export default function LoginPage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [googleUser, setGoogleUser] = useState<GoogleUser | null>(null);
   const [idToken, setIdToken] = useState<string | null>(null);
+  const [legacyData, setLegacyData] = useState<LegacyData | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [roles, setRoles] = useState<RoleOption[]>([]);
 
@@ -197,23 +234,15 @@ export default function LoginPage() {
 
   const handleGoogleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) {
-      setError("Không nhận được thông tin từ Google");
+      toast.error("Không nhận được thông tin từ Google");
       return;
     }
 
     setIsLoading(true);
     setError(null);
 
-    console.log("=== DEBUG LOGIN ===");
-    console.log(
-      "1. Google credential:",
-      `${response.credential.substring(0, 50)}...`
-    );
-    console.log("2. API_URL:", API_URL);
-
     try {
       const apiUrl = `${API_URL}/api/auth/google`;
-      console.log("3. Calling API:", apiUrl);
 
       const res = await fetch(apiUrl, {
         method: "POST",
@@ -221,37 +250,43 @@ export default function LoginPage() {
         body: JSON.stringify({ idToken: response.credential }),
       });
 
-      console.log("4. Response status:", res.status);
-
-      const data = (await res.json()) as {
-        success: boolean;
-        message?: string;
-        needRegister?: boolean;
-        googleUser?: GoogleUser;
-        accessToken?: string;
-        user?: User;
-      };
-
-      console.log("5. Response data:", JSON.stringify(data, null, 2));
+      const data = (await res.json()) as GoogleAuthResponse;
 
       if (!data.success) {
-        console.log("6. ERROR: success = false");
-        setError(data.message ?? "Đăng nhập thất bại");
+        toast.error(data.message ?? "Đăng nhập thất bại");
         return;
       }
 
       if (data.needRegister) {
-        console.log("7. USER MỚI - Hiện modal chọn role");
-        console.log("   googleUser:", data.googleUser);
         setGoogleUser(data.googleUser ?? null);
         setIdToken(response.credential);
-        setShowRoleModal(true);
         setStep(1);
+
+        // 🆕 CHECK LEGACY USER
+        if (data.isLegacyUser && data.legacyData) {
+          console.log("[Legacy User Detected]", data.legacyData);
+          setLegacyData(data.legacyData);
+
+          // Auto-select role for legacy users (always community)
+          setSelectedRole("community");
+
+          // Show welcome message
+          toast.success(`🎉 Chào mừng ${data.legacyData.name} quay trở lại!`, {
+            description: `Cấp bậc: ${data.legacyData.rank} - Cổ phần: ${data.legacyData.shares.toLocaleString()}`,
+          });
+        } else {
+          setLegacyData(null);
+        }
+
+        setShowRoleModal(true);
       } else if (data.accessToken && data.user) {
-        console.log("8. USER CŨ - Redirect theo role:", data.user.role);
-        console.log("   status:", data.user.status);
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("user", JSON.stringify(data.user));
+        if (data.refreshToken) {
+          localStorage.setItem("refreshToken", data.refreshToken);
+        }
+
+        toast.success("Đăng nhập thành công!");
 
         if (data.user.status === "pending") {
           router.push("/pending");
@@ -261,12 +296,11 @@ export default function LoginPage() {
           router.push(ROLE_REDIRECTS[data.user.role]);
         }
       } else {
-        console.log("9. UNEXPECTED: Không có needRegister và không có user");
-        setError("Phản hồi từ server không hợp lệ");
+        toast.error("Phản hồi từ server không hợp lệ");
       }
     } catch (err) {
-      console.log("10. CATCH ERROR:", err);
-      setError("Lỗi kết nối server");
+      console.error(err);
+      toast.error("Lỗi kết nối server");
     } finally {
       setIsLoading(false);
     }
@@ -292,26 +326,20 @@ export default function LoginPage() {
 
   const handleProfileSubmit = async (profileData: ProfileData) => {
     if (!selectedRole || !idToken) {
-      setError("Thiếu thông tin đăng ký");
+      toast.error("Thiếu thông tin đăng ký");
       return;
     }
 
     setIsLoading(true);
     setError(null);
 
-    console.log("=== DEBUG REGISTER ===");
-    console.log("1. idToken:", `${idToken.substring(0, 50)}...`);
-    console.log("2. role:", selectedRole);
-    console.log("3. profileData:", JSON.stringify(profileData, null, 2));
-
     try {
-      // Spread profile data at root level instead of nested
       const payload = {
         idToken,
         role: selectedRole,
+        isLegacyUser: !!legacyData, // 🆕 ADD FLAG
         ...profileData,
       };
-      console.log("4. Final payload:", JSON.stringify(payload, null, 2));
 
       const res = await fetch(`${API_URL}/api/auth/google/register`, {
         method: "POST",
@@ -319,28 +347,34 @@ export default function LoginPage() {
         body: JSON.stringify(payload),
       });
 
-      console.log("5. Response status:", res.status);
-
       const data = (await res.json()) as {
         success: boolean;
         message?: string;
         accessToken?: string;
         user?: User;
+        refreshToken?: string;
       };
 
-      console.log("6. Response data:", JSON.stringify(data, null, 2));
-
       if (!data.success) {
-        console.log("7. ERROR: success = false, message:", data.message);
-        setError(data.message ?? "Đăng ký thất bại");
+        toast.error(data.message ?? "Đăng ký thất bại");
         return;
       }
 
       if (data.accessToken && data.user) {
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("user", JSON.stringify(data.user));
-        // Lưu profile data để hiển thị ở trang pending
+        if (data.refreshToken) {
+          localStorage.setItem("refreshToken", data.refreshToken);
+        }
         localStorage.setItem("profile", JSON.stringify(profileData));
+
+        // 🆕 CLEAR LEGACY DATA
+        setLegacyData(null);
+
+        const message = legacyData
+          ? "Tài khoản đã được khôi phục thành công!"
+          : "Đăng ký thành công!";
+        toast.success(message);
 
         if (data.user.status === "pending") {
           router.push("/pending");
@@ -349,7 +383,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      setError("Lỗi kết nối server");
+      toast.error("Lỗi kết nối server");
     } finally {
       setIsLoading(false);
     }
@@ -365,10 +399,30 @@ export default function LoginPage() {
   const renderProfileForm = () => {
     if (!selectedRole) return null;
 
-    const formProps = {
+    const baseProps = {
       onSubmit: handleProfileSubmit,
       isLoading,
     };
+
+    const legacyProps = legacyData
+      ? {
+        isLegacyUser: true,
+        initialData: {
+          fullName: legacyData.name,
+          phone: legacyData.phone,
+          birthDate: legacyData.dob,
+          contactName: legacyData.name,
+          contactPhone: legacyData.phone,
+          contactBirthDate: legacyData.dob,
+        },
+      }
+      : {
+        isLegacyUser: false, // Explicitly false for type safety
+        initialData: undefined,
+      };
+
+    // Dynamic props are hard to type strictly without intersection types
+    const formProps = { ...baseProps, ...legacyProps };
 
     switch (selectedRole) {
       case "farmer":
@@ -531,11 +585,10 @@ export default function LoginPage() {
                           setSelectedRole(role.value);
                           setError(null);
                         }}
-                        className={`p-4 border-2 rounded-xl transition-all text-left relative ${
-                          isSelected
+                        className={`p-4 border-2 rounded-xl transition-all text-left relative ${isSelected
                             ? "border-green-500 bg-green-50"
                             : "border-slate-200 hover:border-green-300"
-                        } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                          } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         {isSelected && (
                           <span className="absolute -top-2 -right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
@@ -594,11 +647,10 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleContinueToStep2}
                     disabled={!selectedRole || isLoading}
-                    className={`flex-1 py-3 rounded-full font-semibold text-white transition-all ${
-                      selectedRole && !isLoading
+                    className={`flex-1 py-3 rounded-full font-semibold text-white transition-all ${selectedRole && !isLoading
                         ? "gradient-primary hover:shadow-lg"
                         : "bg-slate-300 cursor-not-allowed"
-                    }`}
+                      }`}
                   >
                     Tiếp tục
                   </button>
