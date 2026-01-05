@@ -33,11 +33,16 @@ export function SelectWithOther({
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newValue = e.target.value;
+    console.log(`[SelectWithOther] ${name} onChange:`, newValue);
+    console.log(`[SelectWithOther] ${name} current value:`, value);
     onChange(newValue);
     if (newValue !== "other") {
       onOtherChange("");
     }
   };
+
+  // Debug: log khi value thay đổi
+  console.log(`[SelectWithOther] ${name} render with value:`, value);
 
   return (
     <div className="mb-4">

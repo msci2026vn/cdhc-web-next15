@@ -257,6 +257,8 @@ export function FarmerForm({
           value={formData.certificateType}
           otherValue={formData.certificateTypeOther}
           onChange={(v) => {
+            console.log("[FarmerForm] certificateType onChange:", v);
+            console.log("[FarmerForm] current formData:", formData);
             setFormData({ ...formData, certificateType: v });
           }}
           onOtherChange={(v) => {
