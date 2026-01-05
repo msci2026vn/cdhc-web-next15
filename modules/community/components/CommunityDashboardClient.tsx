@@ -2,6 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  getInterestLabels,
+  getProvinceName,
+  getWardName,
+} from "@/modules/shared";
 import { LegacyDataCard } from "@/modules/shared/components/dashboard/LegacyDataCard";
 
 // ===== TYPES =====
@@ -35,6 +40,8 @@ export function CommunityDashboardClient() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [provinceName, setProvinceName] = useState<string>("");
+  const [wardName, setWardName] = useState<string>("");
 
   // ===== FETCH PROFILE DATA =====
   useEffect(() => {
@@ -88,6 +95,16 @@ export function CommunityDashboardClient() {
 
     fetchProfile();
   }, [router]);
+
+  // ===== FETCH LOCATION NAMES =====
+  useEffect(() => {
+    if (profile?.province) {
+      getProvinceName(profile.province).then(setProvinceName);
+    }
+    if (profile?.ward) {
+      getWardName(profile.ward).then(setWardName);
+    }
+  }, [profile?.province, profile?.ward]);
 
   // ===== LOADING STATE =====
   if (isLoading) {
@@ -167,26 +184,26 @@ export function CommunityDashboardClient() {
                 Tỉnh/Thành phố
               </dt>
               <dd className="text-base font-semibold text-gray-900">
-                {profile?.province || "Chưa cập nhật"}
+                {provinceName || profile?.province || "Chưa cập nhật"}
               </dd>
             </div>
 
             <div>
               <dt className="text-sm font-medium text-gray-500 mb-1">
-                Quận/Huyện
+                Xã/Phường
               </dt>
               <dd className="text-base font-semibold text-gray-900">
-                {profile?.ward || "Chưa cập nhật"}
+                {wardName || profile?.ward || "Chưa cập nhật"}
               </dd>
             </div>
 
             <div className="md:col-span-2">
               <dt className="text-sm font-medium text-gray-500 mb-1">
-                Sở thích
+                Sản phẩm quan tâm
               </dt>
               <dd className="text-base font-semibold text-gray-900">
                 {profile?.interests && profile.interests.length > 0
-                  ? profile.interests.join(", ")
+                  ? getInterestLabels(profile.interests).join(", ")
                   : "Chưa cập nhật"}
               </dd>
             </div>

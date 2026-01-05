@@ -20,8 +20,8 @@ export interface FarmerFormData {
   fullName: string;
   phone: string;
   birthDate: string;
-  provinceCode: string;
-  wardCode: string;
+  province: string;
+  ward: string;
   address: string;
   farmSize: string;
   farmType: string[];
@@ -49,8 +49,8 @@ export function FarmerForm({
     fullName: initialData?.fullName || "",
     phone: initialData?.phone || "",
     birthDate: initialData?.birthDate || "",
-    provinceCode: initialData?.provinceCode || "",
-    wardCode: initialData?.wardCode || "",
+    province: initialData?.province || "",
+    ward: initialData?.ward || "",
     address: initialData?.address || "",
     farmSize: initialData?.farmSize || "",
     farmType: initialData?.farmType || [],
@@ -69,8 +69,7 @@ export function FarmerForm({
 
     if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (!formData.farmSize) newErrors.farmSize = "Vui lòng chọn quy mô";
     if (formData.farmType.length === 0)
       newErrors.farmType = "Vui lòng chọn loại hình";
@@ -165,16 +164,16 @@ export function FarmerForm({
       />
 
       <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
+        provinceCode={formData.province}
+        wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+          setFormData({ ...formData, province: v, ward: "" });
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, wardCode: v });
+          setFormData({ ...formData, ward: v });
         }}
         required
-        error={errors.provinceCode}
+        error={errors.province}
       />
 
       <TextField

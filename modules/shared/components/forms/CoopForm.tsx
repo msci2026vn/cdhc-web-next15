@@ -23,8 +23,8 @@ export interface CoopFormData {
   coopName: string;
   coopCode: string;
   establishedYear: string;
-  provinceCode: string;
-  wardCode: string;
+  province: string;
+  ward: string;
   address: string;
   representativeName: string;
   representativeBirthDate: string;
@@ -53,8 +53,8 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
     coopName: "",
     coopCode: "",
     establishedYear: "",
-    provinceCode: "",
-    wardCode: "",
+    province: "",
+    ward: "",
     address: "",
     representativeName: "",
     representativeBirthDate: "",
@@ -83,8 +83,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
     if (!formData.coopCode) newErrors.coopCode = "Vui lòng nhập mã số HTX";
     if (!formData.establishedYear)
       newErrors.establishedYear = "Vui lòng chọn năm thành lập";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (!formData.address) newErrors.address = "Vui lòng nhập địa chỉ trụ sở";
     if (!formData.representativeName)
       newErrors.representativeName = "Vui lòng nhập người đại diện";
@@ -156,16 +155,16 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
       />
 
       <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
+        provinceCode={formData.province}
+        wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+          setFormData({ ...formData, province: v, ward: "" });
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, wardCode: v });
+          setFormData({ ...formData, ward: v });
         }}
         required
-        error={errors.provinceCode}
+        error={errors.province}
       />
 
       <TextField

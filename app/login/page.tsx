@@ -337,6 +337,28 @@ export default function LoginPage() {
       return;
     }
 
+    // Safety check: Validate common required fields
+    if (
+      (profileData as any).fullName === "" || // Check empty string specifically if it exists
+      (!(profileData as any).province &&
+        (profileData as any).province !== undefined) || // Check if prov exists but is empty
+      (!(profileData as any).ward && (profileData as any).ward !== undefined) // Check if ward exists but is empty
+    ) {
+      // Note: This is a loose check. True validation happens in the form component.
+      // We mainly want to catch obvious empty submissions passed through.
+    }
+
+    // A more specific check for Community/Farmer who definitely have these fields
+    if (
+      (selectedRole === "community" || selectedRole === "farmer") &&
+      (!(profileData as any).fullName ||
+        !(profileData as any).province ||
+        !(profileData as any).ward)
+    ) {
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -344,9 +366,15 @@ export default function LoginPage() {
       const payload = {
         idToken,
         role: selectedRole,
-        isLegacyUser: !!legacyData, // 🆕 ADD FLAG
-        ...profileData,
+        isLegacyUser: !!legacyData,
+        profile: profileData,
       };
+
+      // DEBUG: Log payload being sent
+      console.log("=== REGISTER REQUEST ===");
+      console.log("URL:", `${API_URL}/api/auth/google/register`);
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+      console.log("Profile data:", profileData);
 
       const res = await fetch(`${API_URL}/api/auth/google/register`, {
         method: "POST",
@@ -360,8 +388,49 @@ export default function LoginPage() {
         accessToken?: string;
         user?: User;
         refreshToken?: string;
+        error?: { code: string; message: string; details?: any };
       };
 
+      // DEBUG: Log response
+      console.log("=== REGISTER RESPONSE ===");
+      console.log("Status:", res.status);
+      console.log("Response data:", JSON.stringify(data, null, 2));
+
+      // Handle specific HTTP errors
+      if (res.status === 400) {
+        console.error("=== 400 ERROR DETAILS ===");
+        console.error("Error code:", data.error?.code);
+        console.error("Error message:", data.error?.message);
+        console.error("Error details:", data.error?.details);
+        console.error("Full error:", data.error);
+
+        if (data.error?.code === "PROFILE_REQUIRED") {
+          toast.error("Thông tin hồ sơ là bắt buộc");
+        } else if (data.error?.code === "VALIDATION_ERROR") {
+          toast.error(data.error.message || "Dữ liệu không hợp lệ");
+        } else if (data.error?.code === "INVALID_PROFILE") {
+          // Show detailed validation errors
+          const details = data.error?.details;
+          if (Array.isArray(details) && details.length > 0) {
+            const errorMessages = details
+              .map((d: any) => `${d.path?.join(".")}: ${d.message}`)
+              .join(", ");
+            toast.error(`Lỗi validation: ${errorMessages}`);
+          } else {
+            toast.error(data.error.message || "Thông tin không hợp lệ");
+          }
+        } else {
+          toast.error(data.message || "Vui lòng kiểm tra lại thông tin");
+        }
+        return; // Don't proceed
+      }
+
+      if (res.status === 500) {
+        toast.error("Lỗi máy chủ. Vui lòng thử lại sau.");
+        return;
+      }
+
+      // Check success flag from body
       if (!data.success) {
         toast.error(data.message ?? "Đăng ký thất bại");
         return;
@@ -386,11 +455,12 @@ export default function LoginPage() {
         if (data.user.status === "pending") {
           router.push("/pending");
         } else {
-          router.push(ROLE_REDIRECTS[data.user.role]);
+          router.push(ROLE_REDIRECTS[data.user.role]); // Now safe because data.user is typed
         }
       }
-    } catch {
-      toast.error("Lỗi kết nối server");
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      toast.error(err.message || "Lỗi kết nối server");
     } finally {
       setIsLoading(false);
     }

@@ -212,7 +212,7 @@ export function CommunityForm({
       )}
 
       {/* Validation Summary */}
-      {Object.keys(errors).length > 0 && (
+      {Object.values(errors).some((msg) => !!msg) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">
           <p className="font-semibold mb-1">⚠️ Vui lòng sửa các lỗi sau:</p>
           <ul className="list-disc list-inside">

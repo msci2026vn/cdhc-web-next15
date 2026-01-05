@@ -22,8 +22,8 @@ export interface KolFormData {
   stageName: string;
   phone: string;
   birthDate: string;
-  provinceCode: string;
-  wardCode: string;
+  province: string;
+  ward: string;
   contentTypes: string[];
   contentTypesOther: string;
   platformLinks: PlatformLink[];
@@ -44,8 +44,8 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
     stageName: "",
     phone: "",
     birthDate: "",
-    provinceCode: "",
-    wardCode: "",
+    province: "",
+    ward: "",
     contentTypes: [],
     contentTypesOther: "",
     platformLinks: [{ platform: "", url: "", followers: "" }],
@@ -63,8 +63,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
 
     if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (formData.contentTypes.length === 0)
       newErrors.contentTypes = "Vui lòng chọn ít nhất 1 loại nội dung";
 
@@ -138,16 +137,16 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
       />
 
       <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
+        provinceCode={formData.province}
+        wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+          setFormData({ ...formData, province: v, ward: "" });
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, wardCode: v });
+          setFormData({ ...formData, ward: v });
         }}
         required
-        error={errors.provinceCode}
+        error={errors.province}
       />
 
       <MultiSelectWithOther

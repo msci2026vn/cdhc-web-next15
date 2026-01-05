@@ -20,8 +20,8 @@ export interface ExpertFormData {
   fullName: string;
   phone: string;
   birthDate: string;
-  provinceCode: string;
-  wardCode: string;
+  province: string;
+  ward: string;
   expertise: string[];
   expertiseOther: string;
   degree: string;
@@ -44,8 +44,8 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
     fullName: "",
     phone: "",
     birthDate: "",
-    provinceCode: "",
-    wardCode: "",
+    province: "",
+    ward: "",
     expertise: [],
     expertiseOther: "",
     degree: "",
@@ -66,8 +66,7 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
 
     if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (formData.expertise.length === 0)
       newErrors.expertise = "Vui lòng chọn ít nhất 1 lĩnh vực";
     if (!formData.degree) newErrors.degree = "Vui lòng chọn trình độ";
@@ -125,16 +124,16 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
       />
 
       <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
+        provinceCode={formData.province}
+        wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+          setFormData({ ...formData, province: v, ward: "" });
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, wardCode: v });
+          setFormData({ ...formData, ward: v });
         }}
         required
-        error={errors.provinceCode}
+        error={errors.province}
       />
 
       <MultiSelectWithOther

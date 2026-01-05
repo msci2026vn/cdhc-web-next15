@@ -19,8 +19,8 @@ export interface BusinessFormData {
   taxCode: string;
   businessType: string;
   businessTypeOther: string;
-  provinceCode: string;
-  wardCode: string;
+  province: string;
+  ward: string;
   address: string;
   contactName: string;
   contactBirthDate: string;
@@ -52,8 +52,8 @@ export function BusinessForm({
     taxCode: initialData?.taxCode || "",
     businessType: initialData?.businessType || "",
     businessTypeOther: initialData?.businessTypeOther || "",
-    provinceCode: initialData?.provinceCode || "",
-    wardCode: initialData?.wardCode || "",
+    province: initialData?.province || "",
+    ward: initialData?.ward || "",
     address: initialData?.address || "",
     contactName: initialData?.contactName || "",
     contactBirthDate: initialData?.contactBirthDate || "",
@@ -78,8 +78,7 @@ export function BusinessForm({
     if (!formData.taxCode) newErrors.taxCode = "Vui lòng nhập mã số thuế";
     if (!formData.businessType)
       newErrors.businessType = "Vui lòng chọn loại hình";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (!formData.address) newErrors.address = "Vui lòng nhập địa chỉ trụ sở";
     if (!formData.contactName)
       newErrors.contactName = "Vui lòng nhập người liên hệ";
@@ -164,16 +163,16 @@ export function BusinessForm({
       />
 
       <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
+        provinceCode={formData.province}
+        wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+          setFormData({ ...formData, province: v, ward: "" });
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, wardCode: v });
+          setFormData({ ...formData, ward: v });
         }}
         required
-        error={errors.provinceCode}
+        error={errors.province}
       />
 
       <TextField

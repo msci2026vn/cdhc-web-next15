@@ -22,8 +22,8 @@ interface Profile {
   fullName?: string;
   phone?: string;
   birthDate?: string;
-  provinceCode?: string;
-  wardCode?: string;
+  province?: string;
+  ward?: string;
   address?: string;
 
   // Farmer

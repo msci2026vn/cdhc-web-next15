@@ -21,8 +21,8 @@ export interface KocFormData {
   fullName: string;
   phone: string;
   birthDate: string;
-  provinceCode: string;
-  wardCode: string;
+  province: string;
+  ward: string;
   reviewCategories: string[];
   reviewCategoriesOther: string;
   platformLinks: PlatformLink[];
@@ -42,8 +42,8 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
     fullName: "",
     phone: "",
     birthDate: "",
-    provinceCode: "",
-    wardCode: "",
+    province: "",
+    ward: "",
     reviewCategories: [],
     reviewCategoriesOther: "",
     platformLinks: [{ platform: "", url: "", followers: "" }],
@@ -61,8 +61,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
 
     if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (formData.reviewCategories.length === 0)
       newErrors.reviewCategories = "Vui lòng chọn ít nhất 1 danh mục";
 
@@ -126,16 +125,16 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
       />
 
       <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
+        provinceCode={formData.province}
+        wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+          setFormData({ ...formData, province: v, ward: "" });
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, wardCode: v });
+          setFormData({ ...formData, ward: v });
         }}
         required
-        error={errors.provinceCode}
+        error={errors.province}
       />
 
       <MultiSelectWithOther

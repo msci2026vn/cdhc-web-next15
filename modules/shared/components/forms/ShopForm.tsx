@@ -19,8 +19,8 @@ export interface ShopFormData {
   ownerBirthDate: string;
   phone: string;
   shopType: string;
-  provinceCode: string;
-  wardCode: string;
+  province: string;
+  ward: string;
   address: string;
   website: string;
   sellingPlatforms: string[];
@@ -41,8 +41,8 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
     ownerBirthDate: "",
     phone: "",
     shopType: "",
-    provinceCode: "",
-    wardCode: "",
+    province: "",
+    ward: "",
     address: "",
     website: "",
     sellingPlatforms: [],
@@ -65,8 +65,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
     if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
     if (!formData.shopType)
       newErrors.shopType = "Vui lòng chọn hình thức kinh doanh";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
+    if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (needsAddress && !formData.address)
       newErrors.address = "Vui lòng nhập địa chỉ";
     if (formData.sellingPlatforms.length === 0)
@@ -150,16 +149,16 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
       />
 
       <LocationSelect
-        provinceCode={formData.provinceCode}
-        wardCode={formData.wardCode}
+        provinceCode={formData.province}
+        wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, provinceCode: v, wardCode: "" });
+          setFormData({ ...formData, province: v, ward: "" });
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, wardCode: v });
+          setFormData({ ...formData, ward: v });
         }}
         required
-        error={errors.provinceCode}
+        error={errors.province}
       />
 
       {needsAddress && (
