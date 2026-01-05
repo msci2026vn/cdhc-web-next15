@@ -31,6 +31,7 @@ export default function LegacyLookupPage() {
     answer: number;
     token: string;
   } | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0); // Force remount CAPTCHA
 
   // Validation
   const validateEmail = (email: string): string | undefined => {
@@ -109,9 +110,11 @@ export default function LegacyLookupPage() {
           setError("Vui lòng hoàn thành CAPTCHA để tiếp tục");
         } else if (errorCode === "CAPTCHA_WRONG") {
           setCaptchaData(null);
+          setCaptchaKey((k) => k + 1); // Force reload CAPTCHA
           setError("Kết quả CAPTCHA sai! Vui lòng thử lại");
         } else if (errorCode === "CAPTCHA_EXPIRED") {
           setCaptchaData(null);
+          setCaptchaKey((k) => k + 1); // Force reload CAPTCHA
           setError("CAPTCHA đã hết hạn, vui lòng làm lại");
         } else if (errorCode === "NOT_FOUND") {
           setError(
@@ -195,6 +198,7 @@ export default function LegacyLookupPage() {
             {/* CAPTCHA */}
             {showCaptcha && (
               <MathCaptcha
+                key={captchaKey}
                 onVerify={handleCaptchaVerify}
                 onError={handleCaptchaError}
               />
