@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { COMMUNITY_INTERESTS } from "../../data/form-options";
 import { LocationSelect, MultiSelectWithOther, TextField } from "../ui";
 
 export interface CommunityFormData {
   fullName: string;
-  phone: string;
-  birthDate: string;
-  provinceCode: string;
-  wardCode: string;
+  phone?: string;
+  birthDate?: string;
+  province: string;
+  ward: string;
   interests: string[];
-  interestsOther: string;
+  interestsOther?: string;
   // Legacy fields
   rank?: string;
   shares?: number;
@@ -35,35 +36,99 @@ export function CommunityForm({
     fullName: initialData?.fullName || "",
     phone: initialData?.phone || "",
     birthDate: initialData?.birthDate || "",
-    provinceCode: initialData?.provinceCode || "",
-    wardCode: initialData?.wardCode || "",
+    province: initialData?.province || "",
+    ward: initialData?.ward || "",
     interests: initialData?.interests || [],
     interestsOther: initialData?.interestsOther || "",
     rank: initialData?.rank,
     shares: initialData?.shares,
     f1_total: initialData?.f1_total,
   });
+
   const [errors, setErrors] = useState<
     Partial<Record<keyof CommunityFormData, string>>
   >({});
 
+  const validateField = (
+    field: keyof CommunityFormData,
+    value: any
+  ): string => {
+    switch (field) {
+      case "fullName":
+        if (!value || value.trim().length < 2) {
+          return "Họ và tên phải có ít nhất 2 ký tự";
+        }
+        break;
+      case "province":
+        if (!value) return "Vui lòng chọn tỉnh/thành phố";
+        break;
+      case "ward":
+        if (!value) return "Vui lòng chọn quận/huyện/xã";
+        break;
+      case "interests":
+        if (!value || value.length === 0) {
+          return "Vui lòng chọn ít nhất 1 sản phẩm quan tâm";
+        }
+        break;
+    }
+    return "";
+  };
+
+  const handleFieldChange = (field: keyof CommunityFormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    const error = validateField(field, value);
+    setErrors((prev) => ({ ...prev, [field]: error || undefined }));
+  };
+
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof CommunityFormData, string>> = {};
 
-    if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ tên";
-    if (!formData.provinceCode)
-      newErrors.provinceCode = "Vui lòng chọn tỉnh/thành";
-    if (formData.interests.length === 0)
-      newErrors.interests = "Vui lòng chọn ít nhất 1 sản phẩm quan tâm";
+    // Validate all required fields
+    const fullNameError = validateField("fullName", formData.fullName);
+    if (fullNameError) newErrors.fullName = fullNameError;
+
+    const provinceError = validateField("province", formData.province);
+    if (provinceError) newErrors.province = provinceError;
+
+    const wardError = validateField("ward", formData.ward);
+    if (wardError) newErrors.ward = wardError;
+
+    const interestsError = validateField("interests", formData.interests);
+    if (interestsError) newErrors.interests = interestsError;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
+
     if (validate()) {
-      onSubmit(formData);
+      // Clean data before submitting
+      const cleanData = {
+        ...formData,
+        fullName: formData.fullName.trim(),
+        phone: formData.phone?.trim() || undefined,
+        birthDate: formData.birthDate || undefined,
+        province: formData.province,
+        ward: formData.ward,
+        interests: formData.interests,
+        interestsOther: formData.interestsOther?.trim() || undefined,
+      };
+      onSubmit(cleanData);
+    } else {
+      toast.error("Vui lòng kiểm tra lại thông tin còn thiếu");
     }
+  };
+
+  // Check if form is valid for button state
+  const isFormValid = () => {
+    return (
+      formData.fullName.trim().length >= 2 &&
+      formData.province &&
+      formData.ward &&
+      formData.interests.length > 0
+    );
   };
 
   return (
@@ -146,14 +211,24 @@ export function CommunityForm({
         </>
       )}
 
+      {/* Validation Summary */}
+      {Object.keys(errors).length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">
+          <p className="font-semibold mb-1">⚠️ Vui lòng sửa các lỗi sau:</p>
+          <ul className="list-disc list-inside">
+            {Object.entries(errors).map(([key, msg]) =>
+              msg ? <li key={key}>{msg}</li> : null
+            )}
+          </ul>
+        </div>
+      )}
+
       <div className="space-y-1">
         <TextField
           label="Họ và tên"
           name="fullName"
           value={formData.fullName}
-          onChange={(v) => {
-            setFormData({ ...formData, fullName: v });
-          }}
+          onChange={(v) => handleFieldChange("fullName", v)}
           placeholder="Nguyễn Văn A"
           required
           error={errors.fullName}
@@ -169,10 +244,8 @@ export function CommunityForm({
           label="Số điện thoại"
           name="phone"
           type="tel"
-          value={formData.phone}
-          onChange={(v) => {
-            setFormData({ ...formData, phone: v });
-          }}
+          value={formData.phone || ""}
+          onChange={(v) => handleFieldChange("phone", v)}
           placeholder="0912 345 678 (tùy chọn)"
           disabled={isLegacyUser}
           helperText={
@@ -186,10 +259,8 @@ export function CommunityForm({
           label="Ngày sinh"
           name="birthDate"
           type="date"
-          value={formData.birthDate}
-          onChange={(v) => {
-            setFormData({ ...formData, birthDate: v });
-          }}
+          value={formData.birthDate || ""}
+          onChange={(v) => handleFieldChange("birthDate", v)}
           disabled={isLegacyUser && !!initialData?.birthDate}
           helperText={
             isLegacyUser && !!initialData?.birthDate
@@ -199,29 +270,28 @@ export function CommunityForm({
         />
 
         <LocationSelect
-          provinceCode={formData.provinceCode}
-          wardCode={formData.wardCode}
+          provinceCode={formData.province}
+          wardCode={formData.ward}
           onProvinceChange={(v) => {
-            setFormData({ ...formData, provinceCode: v, wardCode: "" });
+            setFormData((prev) => ({ ...prev, province: v, ward: "" }));
+            handleFieldChange("province", v);
           }}
           onWardChange={(v) => {
-            setFormData({ ...formData, wardCode: v });
+            handleFieldChange("ward", v);
           }}
           required
-          error={errors.provinceCode}
+          error={errors.province || errors.ward}
         />
 
         <MultiSelectWithOther
           label="Sản phẩm quan tâm"
           name="interests"
           value={formData.interests}
-          otherValue={formData.interestsOther}
-          onChange={(v) => {
-            setFormData({ ...formData, interests: v });
-          }}
-          onOtherChange={(v) => {
-            setFormData({ ...formData, interestsOther: v });
-          }}
+          otherValue={formData.interestsOther || ""}
+          onChange={(v) => handleFieldChange("interests", v)}
+          onOtherChange={(v) =>
+            setFormData((prev) => ({ ...prev, interestsOther: v }))
+          }
           options={COMMUNITY_INTERESTS}
           required
           error={errors.interests}
@@ -231,19 +301,49 @@ export function CommunityForm({
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isLoading}
+        disabled={isLoading || (!isLegacyUser && !isFormValid())}
         className={`w-full py-3 rounded-full font-semibold text-white transition-all ${
-          isLoading
+          isLoading || (!isLegacyUser && !isFormValid())
             ? "bg-slate-300 cursor-not-allowed"
             : "gradient-primary hover:shadow-lg"
         }`}
       >
-        {isLoading
-          ? "Đang xử lý..."
-          : isLegacyUser
-            ? "Khôi phục tài khoản"
-            : "Hoàn tất đăng ký"}
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg
+              className="animate-spin h-5 w-5"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            Đang xử lý...
+          </span>
+        ) : isLegacyUser ? (
+          "Khôi phục tài khoản"
+        ) : (
+          "Hoàn tất đăng ký"
+        )}
       </button>
+
+      {!isLegacyUser && !isFormValid() && (
+        <p className="text-center text-xs text-slate-500 mt-2">
+          ⚠️ Vui lòng điền đầy đủ các trường bắt buộc (*)
+        </p>
+      )}
     </div>
   );
 }
