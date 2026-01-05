@@ -122,12 +122,11 @@ export default function LegacyLookupPage() {
     }
   };
 
-  // Auto-submit when CAPTCHA is verified
+  // Save captcha data and hide captcha when verified
   const handleCaptchaVerify = (answer: number, token: string) => {
-    const captcha = { answer, token };
-    setCaptchaData(captcha);
-    // Auto-submit with the captcha data
-    performLookup(captcha);
+    setCaptchaData({ answer, token });
+    setShowCaptcha(false); // Hide captcha after user selects answer
+    setError(null); // Clear error message
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
