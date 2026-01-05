@@ -31,6 +31,14 @@ export function SelectWithOther({
   const hasOtherOption = options.some((opt) => opt.value === "other");
   const showOtherInput = value === "other";
 
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+    if (newValue !== "other") {
+      onOtherChange("");
+    }
+  };
+
   return (
     <div className="mb-4">
       <label
@@ -40,29 +48,40 @@ export function SelectWithOther({
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      <select
-        id={name}
-        name={name}
-        value={value}
-        onChange={(e) => {
-          e.stopPropagation();
-          onChange(e.target.value);
-          if (e.target.value !== "other") {
-            onOtherChange("");
-          }
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-        className={`w-full px-4 py-3 border-2 rounded-xl transition-colors focus:outline-none focus:border-green-500 bg-white cursor-pointer ${
-          error ? "border-red-300 bg-red-50" : "border-slate-200"
-        }`}
-      >
-        <option value="">-- Chọn --</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          id={name}
+          name={name}
+          value={value}
+          onChange={handleChange}
+          className={`w-full px-4 py-3 pr-10 border-2 rounded-xl transition-colors focus:outline-none focus:border-green-500 bg-white cursor-pointer ${
+            error ? "border-red-300 bg-red-50" : "border-slate-200"
+          }`}
+        >
+          <option value="">-- Chọn --</option>
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+          <svg
+            className="w-5 h-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
+      </div>
       {hasOtherOption && showOtherInput && (
         <input
           type="text"
