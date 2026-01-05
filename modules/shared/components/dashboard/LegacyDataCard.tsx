@@ -66,7 +66,7 @@ export function LegacyDataCard({ profile }: LegacyDataCardProps) {
         {/* Stat 2: Shares */}
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-            Số cổ phần
+            Số CPO
           </p>
           <p className="text-lg md:text-xl font-bold text-green-600 truncate">
             {formatNumber(profile.legacyShares)}
@@ -76,7 +76,7 @@ export function LegacyDataCard({ profile }: LegacyDataCardProps) {
         {/* Stat 3: F1 Total */}
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-            Số F1
+            Danh sách Đồng đội
           </p>
           <p className="text-lg md:text-xl font-bold text-purple-600 truncate">
             {profile.legacyF1Total || 0}
@@ -115,7 +115,9 @@ export function LegacyDataCard({ profile }: LegacyDataCardProps) {
           >
             <div className="flex items-center gap-2">
               <span className="text-xl">📋</span>
-              <span className="font-semibold text-gray-900">Danh sách F1</span>
+              <span className="font-semibold text-gray-900">
+                Danh sách Đồng đội
+              </span>
               <span className="text-sm text-gray-500">
                 ({profile.legacyF1s.length} thành viên)
               </span>

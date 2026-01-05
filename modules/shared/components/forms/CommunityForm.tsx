@@ -182,7 +182,7 @@ export function CommunityForm({
               {/* F1 */}
               <div className="bg-white p-3 rounded-lg shadow-sm">
                 <p className="text-xs font-medium text-gray-500 uppercase mb-1">
-                  Số F1
+                  Danh sách Đồng đội
                 </p>
                 <p className="text-base font-bold text-purple-600">
                   {formData.f1_total || 0}
