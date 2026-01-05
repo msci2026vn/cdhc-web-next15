@@ -68,22 +68,12 @@ export default function LegacyLookupPage() {
     }
   };
 
-  const handleCaptchaVerify = (answer: number, token: string) => {
-    setCaptchaData({ answer, token });
-  };
-
   const handleCaptchaError = (errorMsg: string) => {
     setError(`Lỗi CAPTCHA: ${errorMsg}`);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validate()) {
-      toast.error("Vui lòng kiểm tra lại thông tin");
-      return;
-    }
-
+  // Core lookup logic - can be called with or without captcha
+  const performLookup = async (captcha?: { answer: number; token: string }) => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -92,8 +82,8 @@ export default function LegacyLookupPage() {
       const response = await lookupLegacyAccount({
         email: formData.email.trim(),
         phone: formData.phone.trim(),
-        captchaToken: captchaData?.token,
-        captchaAnswer: captchaData?.answer,
+        captchaToken: captcha?.token,
+        captchaAnswer: captcha?.answer,
       });
 
       if (response.success && response.data) {
@@ -130,6 +120,25 @@ export default function LegacyLookupPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Auto-submit when CAPTCHA is verified
+  const handleCaptchaVerify = (answer: number, token: string) => {
+    const captcha = { answer, token };
+    setCaptchaData(captcha);
+    // Auto-submit with the captcha data
+    performLookup(captcha);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validate()) {
+      toast.error("Vui lòng kiểm tra lại thông tin");
+      return;
+    }
+
+    performLookup(captchaData ?? undefined);
   };
 
   return (
