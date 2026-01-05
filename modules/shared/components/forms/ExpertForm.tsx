@@ -93,7 +93,7 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         name="fullName"
         value={formData.fullName}
         onChange={(v) => {
-          setFormData({ ...formData, fullName: v });
+          setFormData((prev) => ({ ...prev, fullName: v }));
         }}
         placeholder="Nguyễn Văn A"
         required
@@ -106,7 +106,7 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         type="tel"
         value={formData.phone}
         onChange={(v) => {
-          setFormData({ ...formData, phone: v });
+          setFormData((prev) => ({ ...prev, phone: v }));
         }}
         placeholder="0912 345 678"
         required
@@ -119,7 +119,7 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         type="date"
         value={formData.birthDate}
         onChange={(v) => {
-          setFormData({ ...formData, birthDate: v });
+          setFormData((prev) => ({ ...prev, birthDate: v }));
         }}
       />
 
@@ -127,10 +127,10 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         provinceCode={formData.province}
         wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, province: v, ward: "" });
+          setFormData((prev) => ({ ...prev, province: v, ward: "" }));
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, ward: v });
+          setFormData((prev) => ({ ...prev, ward: v }));
         }}
         required
         error={errors.province}
@@ -142,10 +142,10 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         value={formData.expertise}
         otherValue={formData.expertiseOther}
         onChange={(v) => {
-          setFormData({ ...formData, expertise: v });
+          setFormData((prev) => ({ ...prev, expertise: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, expertiseOther: v });
+          setFormData((prev) => ({ ...prev, expertiseOther: v }));
         }}
         options={EXPERT_EXPERTISE}
         required
@@ -158,7 +158,7 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
           name="degree"
           value={formData.degree}
           onChange={(v) => {
-            setFormData({ ...formData, degree: v });
+            setFormData((prev) => ({ ...prev, degree: v }));
           }}
           options={EXPERT_DEGREE_OPTIONS}
           required
@@ -170,7 +170,7 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
           name="experienceYears"
           value={formData.experienceYears}
           onChange={(v) => {
-            setFormData({ ...formData, experienceYears: v });
+            setFormData((prev) => ({ ...prev, experienceYears: v }));
           }}
           options={EXPERT_EXPERIENCE_OPTIONS}
           required
@@ -184,10 +184,10 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         value={formData.workplaceType}
         otherValue={formData.workplaceTypeOther}
         onChange={(v) => {
-          setFormData({ ...formData, workplaceType: v });
+          setFormData((prev) => ({ ...prev, workplaceType: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, workplaceTypeOther: v });
+          setFormData((prev) => ({ ...prev, workplaceTypeOther: v }));
         }}
         options={EXPERT_WORKPLACE_TYPE_OPTIONS}
         required
@@ -199,7 +199,7 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         name="workplace"
         value={formData.workplace}
         onChange={(v) => {
-          setFormData({ ...formData, workplace: v });
+          setFormData((prev) => ({ ...prev, workplace: v }));
         }}
         placeholder="Tên trường/viện/công ty (tùy chọn)"
       />
@@ -210,10 +210,10 @@ export function ExpertForm({ onSubmit, isLoading = false }: ExpertFormProps) {
         value={formData.position}
         otherValue={formData.positionOther}
         onChange={(v) => {
-          setFormData({ ...formData, position: v });
+          setFormData((prev) => ({ ...prev, position: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, positionOther: v });
+          setFormData((prev) => ({ ...prev, positionOther: v }));
         }}
         options={EXPERT_POSITION_OPTIONS}
         required

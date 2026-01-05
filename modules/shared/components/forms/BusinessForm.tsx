@@ -127,7 +127,7 @@ export function BusinessForm({
         name="companyName"
         value={formData.companyName}
         onChange={(v) => {
-          setFormData({ ...formData, companyName: v });
+          setFormData((prev) => ({ ...prev, companyName: v }));
         }}
         placeholder="Công ty TNHH ABC"
         required
@@ -139,7 +139,7 @@ export function BusinessForm({
         name="taxCode"
         value={formData.taxCode}
         onChange={(v) => {
-          setFormData({ ...formData, taxCode: v });
+          setFormData((prev) => ({ ...prev, taxCode: v }));
         }}
         placeholder="0123456789"
         required
@@ -152,10 +152,10 @@ export function BusinessForm({
         value={formData.businessType}
         otherValue={formData.businessTypeOther}
         onChange={(v) => {
-          setFormData({ ...formData, businessType: v });
+          setFormData((prev) => ({ ...prev, businessType: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, businessTypeOther: v });
+          setFormData((prev) => ({ ...prev, businessTypeOther: v }));
         }}
         options={BUSINESS_TYPES}
         required
@@ -166,10 +166,10 @@ export function BusinessForm({
         provinceCode={formData.province}
         wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, province: v, ward: "" });
+          setFormData((prev) => ({ ...prev, province: v, ward: "" }));
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, ward: v });
+          setFormData((prev) => ({ ...prev, ward: v }));
         }}
         required
         error={errors.province}
@@ -180,7 +180,7 @@ export function BusinessForm({
         name="address"
         value={formData.address}
         onChange={(v) => {
-          setFormData({ ...formData, address: v });
+          setFormData((prev) => ({ ...prev, address: v }));
         }}
         placeholder="Số nhà, đường..."
         required
@@ -192,7 +192,7 @@ export function BusinessForm({
         name="contactName"
         value={formData.contactName}
         onChange={(v) => {
-          setFormData({ ...formData, contactName: v });
+          setFormData((prev) => ({ ...prev, contactName: v }));
         }}
         placeholder="Nguyễn Văn A"
         required
@@ -211,7 +211,7 @@ export function BusinessForm({
         type="date"
         value={formData.contactBirthDate}
         onChange={(v) => {
-          setFormData({ ...formData, contactBirthDate: v });
+          setFormData((prev) => ({ ...prev, contactBirthDate: v }));
         }}
         disabled={isLegacyUser && !!initialData?.contactBirthDate}
         helperText={
@@ -228,10 +228,10 @@ export function BusinessForm({
           value={formData.contactPosition}
           otherValue={formData.contactPositionOther}
           onChange={(v) => {
-            setFormData({ ...formData, contactPosition: v });
+            setFormData((prev) => ({ ...prev, contactPosition: v }));
           }}
           onOtherChange={(v) => {
-            setFormData({ ...formData, contactPositionOther: v });
+            setFormData((prev) => ({ ...prev, contactPositionOther: v }));
           }}
           options={CONTACT_POSITION_OPTIONS}
           required
@@ -244,7 +244,7 @@ export function BusinessForm({
           type="tel"
           value={formData.contactPhone}
           onChange={(v) => {
-            setFormData({ ...formData, contactPhone: v });
+            setFormData((prev) => ({ ...prev, contactPhone: v }));
           }}
           placeholder="0912 345 678"
           required
@@ -260,7 +260,7 @@ export function BusinessForm({
         type="email"
         value={formData.contactEmail}
         onChange={(v) => {
-          setFormData({ ...formData, contactEmail: v });
+          setFormData((prev) => ({ ...prev, contactEmail: v }));
         }}
         placeholder="email@company.com (tùy chọn)"
       />
@@ -271,7 +271,7 @@ export function BusinessForm({
         type="url"
         value={formData.website}
         onChange={(v) => {
-          setFormData({ ...formData, website: v });
+          setFormData((prev) => ({ ...prev, website: v }));
         }}
         placeholder="https://example.com"
         required
@@ -284,7 +284,7 @@ export function BusinessForm({
         value={formData.employeeCount}
         otherValue=""
         onChange={(v) => {
-          setFormData({ ...formData, employeeCount: v });
+          setFormData((prev) => ({ ...prev, employeeCount: v }));
         }}
         onOtherChange={() => {}}
         options={EMPLOYEE_COUNT_OPTIONS}
@@ -298,10 +298,10 @@ export function BusinessForm({
         value={formData.mainProducts}
         otherValue={formData.mainProductsOther}
         onChange={(v) => {
-          setFormData({ ...formData, mainProducts: v });
+          setFormData((prev) => ({ ...prev, mainProducts: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, mainProductsOther: v });
+          setFormData((prev) => ({ ...prev, mainProductsOther: v }));
         }}
         options={BUSINESS_PRODUCTS}
         required

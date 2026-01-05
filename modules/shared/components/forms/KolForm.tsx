@@ -96,7 +96,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         name="fullName"
         value={formData.fullName}
         onChange={(v) => {
-          setFormData({ ...formData, fullName: v });
+          setFormData((prev) => ({ ...prev, fullName: v }));
         }}
         placeholder="Nguyễn Văn A"
         required
@@ -108,7 +108,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         name="stageName"
         value={formData.stageName}
         onChange={(v) => {
-          setFormData({ ...formData, stageName: v });
+          setFormData((prev) => ({ ...prev, stageName: v }));
         }}
         placeholder="Tên kênh/nickname (tùy chọn)"
       />
@@ -119,7 +119,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         type="tel"
         value={formData.phone}
         onChange={(v) => {
-          setFormData({ ...formData, phone: v });
+          setFormData((prev) => ({ ...prev, phone: v }));
         }}
         placeholder="0912 345 678"
         required
@@ -132,7 +132,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         type="date"
         value={formData.birthDate}
         onChange={(v) => {
-          setFormData({ ...formData, birthDate: v });
+          setFormData((prev) => ({ ...prev, birthDate: v }));
         }}
       />
 
@@ -140,10 +140,10 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         provinceCode={formData.province}
         wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, province: v, ward: "" });
+          setFormData((prev) => ({ ...prev, province: v, ward: "" }));
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, ward: v });
+          setFormData((prev) => ({ ...prev, ward: v }));
         }}
         required
         error={errors.province}
@@ -155,10 +155,10 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         value={formData.contentTypes}
         otherValue={formData.contentTypesOther}
         onChange={(v) => {
-          setFormData({ ...formData, contentTypes: v });
+          setFormData((prev) => ({ ...prev, contentTypes: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, contentTypesOther: v });
+          setFormData((prev) => ({ ...prev, contentTypesOther: v }));
         }}
         options={KOL_CONTENT_TYPES}
         required
@@ -169,7 +169,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         label="Kênh hoạt động"
         value={formData.platformLinks}
         onChange={(v) => {
-          setFormData({ ...formData, platformLinks: v });
+          setFormData((prev) => ({ ...prev, platformLinks: v }));
         }}
         platformOptions={KOL_PLATFORMS}
         followerOptions={KOL_FOLLOWER_OPTIONS}
@@ -183,7 +183,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
           name="totalFollowers"
           value={formData.totalFollowers}
           onChange={(v) => {
-            setFormData({ ...formData, totalFollowers: v });
+            setFormData((prev) => ({ ...prev, totalFollowers: v }));
           }}
           options={KOL_FOLLOWER_OPTIONS}
           required
@@ -195,7 +195,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
           name="engagementRate"
           value={formData.engagementRate}
           onChange={(v) => {
-            setFormData({ ...formData, engagementRate: v });
+            setFormData((prev) => ({ ...prev, engagementRate: v }));
           }}
           options={KOL_ENGAGEMENT_OPTIONS}
           required
@@ -226,7 +226,7 @@ export function KolForm({ onSubmit, isLoading = false }: KolFormProps) {
         name="priceRange"
         value={formData.priceRange}
         onChange={(v) => {
-          setFormData({ ...formData, priceRange: v });
+          setFormData((prev) => ({ ...prev, priceRange: v }));
         }}
         options={KOL_PRICE_OPTIONS}
         required

@@ -90,7 +90,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         name="shopName"
         value={formData.shopName}
         onChange={(v) => {
-          setFormData({ ...formData, shopName: v });
+          setFormData((prev) => ({ ...prev, shopName: v }));
         }}
         placeholder="Cửa hàng Hữu Cơ ABC"
         required
@@ -102,7 +102,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         name="ownerName"
         value={formData.ownerName}
         onChange={(v) => {
-          setFormData({ ...formData, ownerName: v });
+          setFormData((prev) => ({ ...prev, ownerName: v }));
         }}
         placeholder="Nguyễn Văn A"
         required
@@ -115,7 +115,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         type="date"
         value={formData.ownerBirthDate}
         onChange={(v) => {
-          setFormData({ ...formData, ownerBirthDate: v });
+          setFormData((prev) => ({ ...prev, ownerBirthDate: v }));
         }}
       />
 
@@ -125,7 +125,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         type="tel"
         value={formData.phone}
         onChange={(v) => {
-          setFormData({ ...formData, phone: v });
+          setFormData((prev) => ({ ...prev, phone: v }));
         }}
         placeholder="0912 345 678"
         required
@@ -152,10 +152,10 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         provinceCode={formData.province}
         wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, province: v, ward: "" });
+          setFormData((prev) => ({ ...prev, province: v, ward: "" }));
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, ward: v });
+          setFormData((prev) => ({ ...prev, ward: v }));
         }}
         required
         error={errors.province}
@@ -167,7 +167,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
           name="address"
           value={formData.address}
           onChange={(v) => {
-            setFormData({ ...formData, address: v });
+            setFormData((prev) => ({ ...prev, address: v }));
           }}
           placeholder="Số nhà, đường..."
           required
@@ -181,7 +181,7 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         type="url"
         value={formData.website}
         onChange={(v) => {
-          setFormData({ ...formData, website: v });
+          setFormData((prev) => ({ ...prev, website: v }));
         }}
         placeholder="https://example.com (tùy chọn)"
       />
@@ -192,10 +192,10 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         value={formData.sellingPlatforms}
         otherValue={formData.sellingPlatformsOther}
         onChange={(v) => {
-          setFormData({ ...formData, sellingPlatforms: v });
+          setFormData((prev) => ({ ...prev, sellingPlatforms: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, sellingPlatformsOther: v });
+          setFormData((prev) => ({ ...prev, sellingPlatformsOther: v }));
         }}
         options={SELLING_PLATFORMS}
         required
@@ -208,10 +208,10 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
         value={formData.productCategories}
         otherValue={formData.productCategoriesOther}
         onChange={(v) => {
-          setFormData({ ...formData, productCategories: v });
+          setFormData((prev) => ({ ...prev, productCategories: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, productCategoriesOther: v });
+          setFormData((prev) => ({ ...prev, productCategoriesOther: v }));
         }}
         options={SHOP_PRODUCT_CATEGORIES}
         required

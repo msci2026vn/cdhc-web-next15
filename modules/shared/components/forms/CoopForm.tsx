@@ -123,7 +123,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         name="coopName"
         value={formData.coopName}
         onChange={(v) => {
-          setFormData({ ...formData, coopName: v });
+          setFormData((prev) => ({ ...prev, coopName: v }));
         }}
         placeholder="HTX Nông nghiệp ABC"
         required
@@ -135,7 +135,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         name="coopCode"
         value={formData.coopCode}
         onChange={(v) => {
-          setFormData({ ...formData, coopCode: v });
+          setFormData((prev) => ({ ...prev, coopCode: v }));
         }}
         placeholder="0123456789"
         required
@@ -147,7 +147,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         name="establishedYear"
         value={formData.establishedYear}
         onChange={(v) => {
-          setFormData({ ...formData, establishedYear: v });
+          setFormData((prev) => ({ ...prev, establishedYear: v }));
         }}
         options={ESTABLISHED_YEAR_OPTIONS}
         required
@@ -158,10 +158,10 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         provinceCode={formData.province}
         wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, province: v, ward: "" });
+          setFormData((prev) => ({ ...prev, province: v, ward: "" }));
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, ward: v });
+          setFormData((prev) => ({ ...prev, ward: v }));
         }}
         required
         error={errors.province}
@@ -172,7 +172,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         name="address"
         value={formData.address}
         onChange={(v) => {
-          setFormData({ ...formData, address: v });
+          setFormData((prev) => ({ ...prev, address: v }));
         }}
         placeholder="Số nhà, đường..."
         required
@@ -184,7 +184,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         name="representativeName"
         value={formData.representativeName}
         onChange={(v) => {
-          setFormData({ ...formData, representativeName: v });
+          setFormData((prev) => ({ ...prev, representativeName: v }));
         }}
         placeholder="Nguyễn Văn A"
         required
@@ -197,7 +197,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         type="date"
         value={formData.representativeBirthDate}
         onChange={(v) => {
-          setFormData({ ...formData, representativeBirthDate: v });
+          setFormData((prev) => ({ ...prev, representativeBirthDate: v }));
         }}
       />
 
@@ -208,10 +208,13 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
           value={formData.representativePosition}
           otherValue={formData.representativePositionOther}
           onChange={(v) => {
-            setFormData({ ...formData, representativePosition: v });
+            setFormData((prev) => ({ ...prev, representativePosition: v }));
           }}
           onOtherChange={(v) => {
-            setFormData({ ...formData, representativePositionOther: v });
+            setFormData((prev) => ({
+              ...prev,
+              representativePositionOther: v,
+            }));
           }}
           options={COOP_POSITION_OPTIONS}
           required
@@ -224,7 +227,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
           type="tel"
           value={formData.phone}
           onChange={(v) => {
-            setFormData({ ...formData, phone: v });
+            setFormData((prev) => ({ ...prev, phone: v }));
           }}
           placeholder="0912 345 678"
           required
@@ -238,7 +241,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
           name="memberCount"
           value={formData.memberCount}
           onChange={(v) => {
-            setFormData({ ...formData, memberCount: v });
+            setFormData((prev) => ({ ...prev, memberCount: v }));
           }}
           options={COOP_MEMBER_COUNT_OPTIONS}
           required
@@ -250,7 +253,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
           name="employeeCount"
           value={formData.employeeCount}
           onChange={(v) => {
-            setFormData({ ...formData, employeeCount: v });
+            setFormData((prev) => ({ ...prev, employeeCount: v }));
           }}
           options={COOP_EMPLOYEE_COUNT_OPTIONS}
           required
@@ -263,7 +266,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         name="farmArea"
         value={formData.farmArea}
         onChange={(v) => {
-          setFormData({ ...formData, farmArea: v });
+          setFormData((prev) => ({ ...prev, farmArea: v }));
         }}
         options={COOP_FARM_AREA_OPTIONS}
         required
@@ -276,10 +279,10 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         value={formData.mainProducts}
         otherValue={formData.mainProductsOther}
         onChange={(v) => {
-          setFormData({ ...formData, mainProducts: v });
+          setFormData((prev) => ({ ...prev, mainProducts: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, mainProductsOther: v });
+          setFormData((prev) => ({ ...prev, mainProductsOther: v }));
         }}
         options={COOP_PRODUCTS}
         required
@@ -291,13 +294,12 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
         name="hasCertificate"
         value={formData.hasCertificate}
         onChange={(v) => {
-          setFormData({
-            ...formData,
+          setFormData((prev) => ({
+            ...prev,
             hasCertificate: v,
-            certificateType: v === "no" ? "" : formData.certificateType,
-            certificateTypeOther:
-              v === "no" ? "" : formData.certificateTypeOther,
-          });
+            certificateType: v === "no" ? "" : prev.certificateType,
+            certificateTypeOther: v === "no" ? "" : prev.certificateTypeOther,
+          }));
         }}
         options={[
           { value: "yes", label: "Có" },
@@ -314,10 +316,10 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
           value={formData.certificateType}
           otherValue={formData.certificateTypeOther}
           onChange={(v) => {
-            setFormData({ ...formData, certificateType: v });
+            setFormData((prev) => ({ ...prev, certificateType: v }));
           }}
           onOtherChange={(v) => {
-            setFormData({ ...formData, certificateTypeOther: v });
+            setFormData((prev) => ({ ...prev, certificateTypeOther: v }));
           }}
           options={COOP_CERTIFICATE_TYPES}
           required
@@ -351,7 +353,7 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
           type="url"
           value={formData.website}
           onChange={(v) => {
-            setFormData({ ...formData, website: v });
+            setFormData((prev) => ({ ...prev, website: v }));
           }}
           placeholder="https://example.com"
           required

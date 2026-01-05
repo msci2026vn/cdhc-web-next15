@@ -94,7 +94,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         name="fullName"
         value={formData.fullName}
         onChange={(v) => {
-          setFormData({ ...formData, fullName: v });
+          setFormData((prev) => ({ ...prev, fullName: v }));
         }}
         placeholder="Nguyễn Văn A"
         required
@@ -107,7 +107,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         type="tel"
         value={formData.phone}
         onChange={(v) => {
-          setFormData({ ...formData, phone: v });
+          setFormData((prev) => ({ ...prev, phone: v }));
         }}
         placeholder="0912 345 678"
         required
@@ -120,7 +120,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         type="date"
         value={formData.birthDate}
         onChange={(v) => {
-          setFormData({ ...formData, birthDate: v });
+          setFormData((prev) => ({ ...prev, birthDate: v }));
         }}
       />
 
@@ -128,10 +128,10 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         provinceCode={formData.province}
         wardCode={formData.ward}
         onProvinceChange={(v) => {
-          setFormData({ ...formData, province: v, ward: "" });
+          setFormData((prev) => ({ ...prev, province: v, ward: "" }));
         }}
         onWardChange={(v) => {
-          setFormData({ ...formData, ward: v });
+          setFormData((prev) => ({ ...prev, ward: v }));
         }}
         required
         error={errors.province}
@@ -143,10 +143,10 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         value={formData.reviewCategories}
         otherValue={formData.reviewCategoriesOther}
         onChange={(v) => {
-          setFormData({ ...formData, reviewCategories: v });
+          setFormData((prev) => ({ ...prev, reviewCategories: v }));
         }}
         onOtherChange={(v) => {
-          setFormData({ ...formData, reviewCategoriesOther: v });
+          setFormData((prev) => ({ ...prev, reviewCategoriesOther: v }));
         }}
         options={KOC_REVIEW_CATEGORIES}
         required
@@ -157,7 +157,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         label="Kênh hoạt động"
         value={formData.platformLinks}
         onChange={(v) => {
-          setFormData({ ...formData, platformLinks: v });
+          setFormData((prev) => ({ ...prev, platformLinks: v }));
         }}
         platformOptions={KOC_PLATFORMS}
         followerOptions={KOC_FOLLOWER_OPTIONS}
@@ -171,7 +171,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
           name="totalFollowers"
           value={formData.totalFollowers}
           onChange={(v) => {
-            setFormData({ ...formData, totalFollowers: v });
+            setFormData((prev) => ({ ...prev, totalFollowers: v }));
           }}
           options={KOC_FOLLOWER_OPTIONS}
           required
@@ -183,7 +183,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
           name="reviewCount"
           value={formData.reviewCount}
           onChange={(v) => {
-            setFormData({ ...formData, reviewCount: v });
+            setFormData((prev) => ({ ...prev, reviewCount: v }));
           }}
           options={KOC_REVIEW_COUNT_OPTIONS}
           required
@@ -214,7 +214,7 @@ export function KocForm({ onSubmit, isLoading = false }: KocFormProps) {
         name="priceRange"
         value={formData.priceRange}
         onChange={(v) => {
-          setFormData({ ...formData, priceRange: v });
+          setFormData((prev) => ({ ...prev, priceRange: v }));
         }}
         options={KOC_PRICE_OPTIONS}
         required
