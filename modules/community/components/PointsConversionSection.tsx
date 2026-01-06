@@ -37,6 +37,7 @@ interface ProfileData {
 interface Props {
   readonly profile: ProfileData | null;
   readonly onConversionSuccess: () => void;
+  readonly showOnlyHistory?: boolean;
 }
 
 // ============================================================
@@ -108,6 +109,7 @@ const getStatusDisplay = (status: string | undefined | null) => {
 export function PointsConversionSection({
   profile,
   onConversionSuccess,
+  showOnlyHistory = false,
 }: Props) {
   // ===== MODAL STATE =====
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -298,7 +300,116 @@ export function PointsConversionSection({
 
   // ===== DON'T RENDER IF NO LEGACY DATA =====
   if (!profile?.legacyOgn && !profile?.legacyTor) {
+    // Still show history if showOnlyHistory
+    if (showOnlyHistory) {
+      return (
+        <div className="text-center py-10">
+          <span className="text-4xl mb-3 block">📭</span>
+          <p className="text-gray-500">Chưa có giao dịch đổi điểm nào</p>
+        </div>
+      );
+    }
     return null;
+  }
+
+  // ===== SHOW ONLY HISTORY MODE =====
+  if (showOnlyHistory) {
+    return (
+      <div>
+        {isLoadingHistory ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mx-auto mb-3" />
+            <p className="text-gray-500">Đang tải lịch sử...</p>
+          </div>
+        ) : historyError ? (
+          <div className="text-center py-12">
+            <p className="text-red-500 mb-3">❌ {historyError}</p>
+            <button
+              type="button"
+              onClick={() => loadHistory(1)}
+              className="px-4 py-2 text-purple-600 hover:text-purple-700 font-semibold"
+            >
+              Thử lại
+            </button>
+          </div>
+        ) : history.length === 0 ? (
+          <div className="text-center py-10">
+            <span className="text-4xl mb-3 block">📭</span>
+            <p className="text-gray-500">Chưa có giao dịch đổi điểm nào</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {history.map((conv) => {
+              const statusDisplay = getStatusDisplay(conv.status);
+
+              return (
+                <div
+                  key={conv.id}
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        conv.fromType === "ogn"
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-pink-100 text-pink-800"
+                      }`}
+                    >
+                      {conv.fromType.toUpperCase()}
+                    </span>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusDisplay.bgClass}`}
+                    >
+                      {statusDisplay.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-red-600 font-medium">
+                      -{formatNumber(conv.fromAmount)}{" "}
+                      {conv.fromType.toUpperCase()}
+                    </span>
+                    <span className="text-gray-400">→</span>
+                    <span className="text-green-600 font-medium">
+                      +{formatNumber(conv.toAmount)} CPO
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    {formatDateTime(conv.createdAt)}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-xs text-gray-500">
+                  Trang {page} / {totalPages}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => loadHistory(page - 1)}
+                    disabled={page === 1 || isLoadingHistory}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => loadHistory(page + 1)}
+                    disabled={page === totalPages || isLoadingHistory}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   }
 
   // ===== RENDER =====
@@ -321,6 +432,7 @@ export function PointsConversionSection({
           <button
             type="button"
             onClick={handleConvertButtonClick}
+            data-conversion-btn
             className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg"
           >
             Đổi điểm ngay
