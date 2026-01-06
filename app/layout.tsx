@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: true,
   },
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {

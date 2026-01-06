@@ -1,2 +1,7 @@
 /*
   Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+/sw.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /
