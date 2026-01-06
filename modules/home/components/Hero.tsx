@@ -27,7 +27,7 @@ export function Hero() {
                 ⭐
               </span>
               <span className="text-sm font-medium">
-                Super App Nông Nghiệp Hữu Cơ #1 Việt Nam
+                Super App Nông Nghiệp #1 Việt Nam
               </span>
             </div>
 

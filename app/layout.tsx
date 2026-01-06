@@ -4,8 +4,8 @@ import { UpdateNotification } from "@/components/UpdateNotification";
 import { Providers } from "./providers";
 
 const APP_NAME = "Con Đường Hữu Cơ";
-const APP_DEFAULT_TITLE = "CDHC - Super App Nông Nghiệp Hữu Cơ #1 Việt Nam";
-const APP_TITLE_TEMPLATE = "%s | CDHC";
+const APP_DEFAULT_TITLE = "Con Đường Hữu Cơ";
+const APP_TITLE_TEMPLATE = "%s | Con Đường Hữu Cơ";
 const APP_DESCRIPTION =
   "Ứng dụng toàn diện cho nông dân hữu cơ: AI chẩn đoán bệnh cây, dự báo thời tiết, sàn thương mại, truy xuất nguồn gốc, quản lý HTX. Tham gia cộng đồng 15,000+ thành viên.";
 
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   keywords:
     "hữu cơ, organic, nông nghiệp thông minh, AI nông nghiệp, truy xuất nguồn gốc, CDHC, sàn nông sản",
   openGraph: {
-    title: "Con Đường Hữu Cơ - Super App Nông Nghiệp Hữu Cơ",
+    title: "Con Đường Hữu Cơ",
     description:
       "AI chẩn đoán bệnh cây, sàn thương mại hữu cơ, truy xuất nguồn gốc",
     type: "website",
@@ -66,7 +66,7 @@ export default function RootLayout({
         />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="CDHC" />
+        <meta name="apple-mobile-web-app-title" content="Con Đường Hữu Cơ" />
       </head>
       <body className="bg-white text-slate-600">
         <Providers>{children}</Providers>
