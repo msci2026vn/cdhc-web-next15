@@ -599,7 +599,7 @@ export function CommunityDashboardClient() {
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
             localStorage.removeItem("user");
-            router.push("/login");
+            router.push("/");
           }}
           className="w-full py-4 bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl text-white font-semibold hover:bg-white/20 hover:border-white/50 transition-all flex items-center justify-center gap-3 group"
         >
