@@ -176,6 +176,9 @@ export function CommunityDashboardClient() {
     router.push("/");
   };
 
+  // ===== CONVERSION MODAL STATE (for mobile) =====
+  const [isConversionModalOpen, setIsConversionModalOpen] = useState(false);
+
   // ===== LOADING STATE =====
   if (isLoading) {
     return (
@@ -446,12 +449,7 @@ export function CommunityDashboardClient() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          const btn = document.querySelector(
-                            "[data-conversion-btn]"
-                          ) as HTMLButtonElement;
-                          btn?.click();
-                        }}
+                        onClick={() => setIsConversionModalOpen(true)}
                         className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all shadow-lg hover:shadow-xl whitespace-nowrap"
                       >
                         Đổi điểm ngay
@@ -622,13 +620,13 @@ export function CommunityDashboardClient() {
             Đăng xuất
           </button>
 
-          {/* Hidden Points Conversion (for modal trigger) */}
-          <div className="hidden">
-            <PointsConversionSection
-              profile={profile}
-              onConversionSuccess={refreshProfile}
-            />
-          </div>
+          {/* Points Conversion Modal (for mobile) */}
+          <PointsConversionSection
+            profile={profile}
+            onConversionSuccess={refreshProfile}
+            externalModalOpen={isConversionModalOpen}
+            onExternalModalClose={() => setIsConversionModalOpen(false)}
+          />
         </div>
 
         {/* Animation Style */}

@@ -38,6 +38,8 @@ interface Props {
   readonly profile: ProfileData | null;
   readonly onConversionSuccess: () => void;
   readonly showOnlyHistory?: boolean;
+  readonly externalModalOpen?: boolean;
+  readonly onExternalModalClose?: () => void;
 }
 
 // ============================================================
@@ -110,9 +112,21 @@ export function PointsConversionSection({
   profile,
   onConversionSuccess,
   showOnlyHistory = false,
+  externalModalOpen = false,
+  onExternalModalClose,
 }: Props) {
   // ===== MODAL STATE =====
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [internalModalOpen, setInternalModalOpen] = useState(false);
+
+  // Combine internal and external modal state
+  const isModalOpen = internalModalOpen || externalModalOpen;
+
+  const setIsModalOpen = (open: boolean) => {
+    setInternalModalOpen(open);
+    if (!open && onExternalModalClose) {
+      onExternalModalClose();
+    }
+  };
   const [convertType, setConvertType] = useState<"ogn" | "tor">("ogn");
   const [amount, setAmount] = useState("");
   const [isConverting, setIsConverting] = useState(false);
