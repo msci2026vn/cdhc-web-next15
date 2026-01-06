@@ -94,7 +94,7 @@ export function Hero() {
                 <div className="relative rounded-[2.5rem] overflow-hidden aspect-[9/19]">
                   <Image
                     src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=400&h=800&fit=crop"
-                    alt="CDHC App"
+                    alt="Giao diện ứng dụng Con Đường Hữu Cơ hiển thị trên điện thoại"
                     fill
                     className="object-cover"
                   />

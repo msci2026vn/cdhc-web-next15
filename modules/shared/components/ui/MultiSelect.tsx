@@ -38,8 +38,8 @@ export function MultiSelect({
   };
 
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-slate-700 mb-2">
+    <fieldset className="mb-4 border-0 p-0 m-0">
+      <legend className="block text-sm font-medium text-slate-700 mb-2">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
         {maxSelect && (
@@ -47,7 +47,7 @@ export function MultiSelect({
             (tối đa {maxSelect})
           </span>
         )}
-      </label>
+      </legend>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const isSelected = value.includes(opt.value);
@@ -60,6 +60,7 @@ export function MultiSelect({
               type="button"
               onClick={() => handleToggle(opt.value)}
               disabled={isDisabled}
+              aria-pressed={isSelected}
               className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
                 isSelected
                   ? "border-green-500 bg-green-50 text-green-700"
@@ -74,6 +75,6 @@ export function MultiSelect({
         })}
       </div>
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-    </div>
+    </fieldset>
   );
 }

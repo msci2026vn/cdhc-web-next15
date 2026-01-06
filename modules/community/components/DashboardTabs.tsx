@@ -29,7 +29,7 @@ export function DashboardTabs({
 
   if (isMobile) {
     return (
-      <div className="flex bg-gray-50 p-2 gap-2">
+      <div className="flex bg-gray-50 p-2 gap-2" role="tablist">
         {tabs.map((tab) => (
           <button
             key={tab.id}

@@ -105,18 +105,23 @@ export function LocationSelect({
   }
 
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-slate-700 mb-2">
+    <fieldset className="mb-4">
+      <legend className="block text-sm font-medium text-slate-700 mb-2">
         Địa điểm
         {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
+      </legend>
       <div className="grid grid-cols-2 gap-3">
         {/* Province Select */}
         <div className="relative">
+          <label htmlFor="province-select" className="sr-only">
+            Tỉnh/thành phố
+          </label>
           <select
+            id="province-select"
             value={provinceCode}
             onChange={handleProvinceChange}
             onMouseDown={(e) => e.stopPropagation()}
+            aria-label="Chọn tỉnh/thành phố"
             className={`w-full px-4 py-3 pr-10 border-2 rounded-xl transition-colors focus:outline-none focus:border-green-500 bg-white cursor-pointer ${
               error ? "border-red-300 bg-red-50" : "border-slate-200"
             }`}
@@ -132,11 +137,16 @@ export function LocationSelect({
 
         {/* Ward Select */}
         <div className="relative">
+          <label htmlFor="ward-select" className="sr-only">
+            Xã/phường
+          </label>
           <select
+            id="ward-select"
             value={wardCode}
             onChange={handleWardChange}
             onMouseDown={(e) => e.stopPropagation()}
             disabled={!provinceCode}
+            aria-label="Chọn xã/phường"
             className={`w-full px-4 py-3 pr-10 border-2 rounded-xl transition-colors focus:outline-none focus:border-green-500 bg-white cursor-pointer disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed ${
               error ? "border-red-300 bg-red-50" : "border-slate-200"
             }`}
@@ -151,6 +161,6 @@ export function LocationSelect({
         </div>
       </div>
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-    </div>
+    </fieldset>
   );
 }

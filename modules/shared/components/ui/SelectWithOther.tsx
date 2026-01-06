@@ -83,13 +83,19 @@ export function SelectWithOther({
         </div>
       </div>
       {hasOtherOption && showOtherInput && (
-        <input
-          type="text"
-          value={otherValue}
-          onChange={(e) => onOtherChange(e.target.value)}
-          placeholder="Nhập thông tin khác..."
-          className="mt-2 w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-colors focus:outline-none focus:border-green-500"
-        />
+        <>
+          <label htmlFor={`${name}-other`} className="sr-only">
+            Nhập thông tin khác
+          </label>
+          <input
+            id={`${name}-other`}
+            type="text"
+            value={otherValue}
+            onChange={(e) => onOtherChange(e.target.value)}
+            placeholder="Nhập thông tin khác..."
+            className="mt-2 w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-colors focus:outline-none focus:border-green-500"
+          />
+        </>
       )}
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
