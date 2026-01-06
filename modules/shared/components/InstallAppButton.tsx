@@ -37,13 +37,14 @@ export function InstallAppButton({
     }
   };
 
-  // If already installed, show different state
+  // If already installed, show disabled state (no action needed)
   if (isInstalled || isStandalone) {
     return (
       <button
         type="button"
-        className={className}
-        onClick={() => window.location.reload()}
+        className={`${className} opacity-70 cursor-default`}
+        disabled
+        aria-label="Ứng dụng đã được cài đặt"
       >
         {children || (
           <>

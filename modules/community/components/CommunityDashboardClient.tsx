@@ -181,13 +181,19 @@ export function CommunityDashboardClient() {
 
   // ===== ERROR STATE =====
   if (error) {
+    const handleRetry = () => {
+      setError(null);
+      setIsLoading(true);
+      fetchProfile();
+    };
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-700 via-green-800 to-green-900 lg:bg-gray-100">
         <div className="text-center bg-white rounded-2xl p-8 shadow-2xl">
-          <p className="text-red-600 mb-4">❌ {error}</p>
+          <p className="text-red-600 mb-4">{error}</p>
           <button
             type="button"
-            onClick={() => window.location.reload()}
+            onClick={handleRetry}
             className="px-6 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 font-semibold transition-all"
           >
             Thử lại
@@ -242,12 +248,11 @@ export function CommunityDashboardClient() {
                   {userAvatar ? (
                     <Image
                       src={userAvatar}
-                      alt="Avatar"
+                      alt={`Avatar của ${profile?.fullName || "người dùng"}`}
                       width={96}
                       height={96}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
-                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold">
@@ -682,12 +687,11 @@ export function CommunityDashboardClient() {
                       {userAvatar ? (
                         <Image
                           src={userAvatar}
-                          alt="Avatar"
+                          alt={`Avatar của ${profile?.fullName || "người dùng"}`}
                           width={80}
                           height={80}
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
-                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">

@@ -1,25 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-interface Province {
-  code: string;
-  name: string;
-  slug: string;
-  type: string;
-  name_with_type: string;
-}
-
-interface Ward {
-  code: string;
-  name: string;
-  slug: string;
-  type: string;
-  name_with_type: string;
-  path: string;
-  path_with_type: string;
-  parent_code: string;
-}
+import {
+  getCachedProvinces,
+  getCachedWards,
+  loadProvinces,
+  loadWards,
+  type Province,
+  type Ward,
+} from "@/modules/shared/lib/location-cache";
 
 interface LocationSelectProps {
   provinceCode: string;
@@ -38,32 +27,50 @@ export function LocationSelect({
   required = false,
   error,
 }: LocationSelectProps) {
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [allWards, setAllWards] = useState<Ward[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [provinces, setProvinces] = useState<Province[]>(
+    () => getCachedProvinces() || []
+  );
+  const [allWards, setAllWards] = useState<Ward[]>(
+    () => getCachedWards() || []
+  );
+  const [loading, setLoading] = useState(
+    () => !getCachedProvinces() || !getCachedWards()
+  );
 
-  // Load provinces
+  // Load data from cache or fetch if not cached
   useEffect(() => {
-    fetch("/tinh.json")
-      .then((res) => res.json())
-      .then((data: Record<string, Province>) => {
-        const provinceList = Object.values(data);
-        provinceList.sort((a, b) => a.name.localeCompare(b.name, "vi"));
-        setProvinces(provinceList);
-      })
-      .catch(console.error);
-  }, []);
+    // If already have cached data, no need to fetch
+    const cachedProvinces = getCachedProvinces();
+    const cachedWards = getCachedWards();
 
-  // Load wards
-  useEffect(() => {
-    fetch("/xa.json")
-      .then((res) => res.json())
-      .then((data: Record<string, Ward>) => {
-        const wardList = Object.values(data);
-        setAllWards(wardList);
-        setLoading(false);
+    if (cachedProvinces && cachedWards) {
+      setProvinces(cachedProvinces);
+      setAllWards(cachedWards);
+      setLoading(false);
+      return;
+    }
+
+    // Load data (will use cache if available)
+    let mounted = true;
+
+    Promise.all([loadProvinces(), loadWards()])
+      .then(([provinceList, wardList]) => {
+        if (mounted) {
+          setProvinces(provinceList);
+          setAllWards(wardList);
+          setLoading(false);
+        }
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error("Failed to load location data:", err);
+        if (mounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Filter wards by selected province
@@ -77,14 +84,12 @@ export function LocationSelect({
   const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.stopPropagation();
     const code = e.target.value;
-    console.log("Province selected:", code);
     onProvinceChange(code);
   };
 
   const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.stopPropagation();
     const code = e.target.value;
-    console.log("Ward selected:", code);
     onWardChange(code);
   };
 
