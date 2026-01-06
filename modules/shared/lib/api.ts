@@ -12,7 +12,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
  * Get math CAPTCHA challenge
  */
 export async function getCaptchaChallenge(): Promise<CaptchaChallenge> {
-  const response = await fetch(`${API_URL}/api/legacy/captcha/math`);
+  const response = await fetch(`${API_URL}/api/legacy/captcha/math`, {
+    credentials: "include",
+  });
 
   if (!response.ok) {
     throw new Error("Failed to load CAPTCHA");
@@ -44,6 +46,7 @@ export async function lookupLegacyAccount(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(request),
+    credentials: "include",
   });
 
   const data = await response.json();

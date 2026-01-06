@@ -7,6 +7,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { RateLimitBlocked } from "@/components/auth/RateLimitBlocked";
+import { RateLimitWarning } from "@/components/auth/RateLimitWarning";
+import { checkRateLimit, handleRateLimitResponse } from "@/lib/api/rate-limit";
 import type {
   BusinessFormData,
   CommunityFormData,
@@ -158,8 +161,28 @@ export default function LoginPage() {
   // Step 2: Profile form
   const [step, setStep] = useState<1 | 2>(1);
 
+  // Rate limiting state
+  const [warning, setWarning] = useState<string>("");
+  const [attemptsRemaining, setAttemptsRemaining] = useState(5);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [retryAfter, setRetryAfter] = useState(0);
+
   // ===== ABORT CONTROLLER REF =====
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Pre-check rate limit on mount (optional)
+  useEffect(() => {
+    async function preCheck() {
+      const status = await checkRateLimit();
+      if (status.blocked && status.remainingTime) {
+        setIsBlocked(true);
+        setRetryAfter(status.remainingTime);
+      } else {
+        setAttemptsRemaining(status.attemptsRemaining ?? 5);
+      }
+    }
+    preCheck();
+  }, []);
 
   // Fetch danh sach roles khi mount
   useEffect(() => {
@@ -263,6 +286,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     setError(null);
+    setWarning("");
 
     try {
       const apiUrl = `${API_URL}/api/auth/google`;
@@ -275,6 +299,25 @@ export default function LoginPage() {
       });
 
       const data = (await res.json()) as GoogleAuthResponse;
+
+      // Handle rate limiting
+      const rateLimitInfo = handleRateLimitResponse({
+        status: res.status,
+        data,
+      });
+
+      if (rateLimitInfo.isRateLimited) {
+        setIsBlocked(true);
+        setRetryAfter(rateLimitInfo.retryAfter ?? 60);
+        setError(rateLimitInfo.message ?? "Tài khoản bị khóa tạm thời");
+        toast.error(rateLimitInfo.message ?? "Tài khoản bị khóa tạm thời");
+        return;
+      }
+
+      if (rateLimitInfo.warning) {
+        setWarning(rateLimitInfo.warning);
+        setAttemptsRemaining(rateLimitInfo.attemptsRemaining ?? 0);
+      }
 
       if (!data.success) {
         toast.error(data.message ?? "Đăng nhập thất bại");
@@ -470,6 +513,14 @@ export default function LoginPage() {
     setError(null);
   };
 
+  const handleUnblock = () => {
+    setIsBlocked(false);
+    setRetryAfter(0);
+    setError(null);
+    setWarning("");
+    setAttemptsRemaining(5);
+  };
+
   const renderProfileForm = () => {
     if (!selectedRole) return null;
 
@@ -548,8 +599,25 @@ export default function LoginPage() {
           <p className="text-slate-500 mt-2">Chào mừng đến Con Đường Hữu Cơ</p>
         </div>
 
+        {/* Rate Limit Blocked */}
+        {isBlocked && !showRoleModal && (
+          <div className="mb-6">
+            <RateLimitBlocked
+              retryAfter={retryAfter}
+              onUnblock={handleUnblock}
+            />
+          </div>
+        )}
+
+        {/* Rate Limit Warning */}
+        {!isBlocked && warning && !showRoleModal && (
+          <div className="mb-6">
+            <RateLimitWarning attemptsRemaining={attemptsRemaining} />
+          </div>
+        )}
+
         {/* Error message */}
-        {error && !showRoleModal && (
+        {error && !showRoleModal && !isBlocked && !warning && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm text-center">
             {error}
           </div>
@@ -557,7 +625,7 @@ export default function LoginPage() {
 
         {/* Google Login Button */}
         <div
-          className={`flex justify-center ${isLoading ? "opacity-50 pointer-events-none" : ""}`}
+          className={`flex justify-center ${isLoading || isBlocked ? "opacity-50 pointer-events-none" : ""}`}
         >
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
@@ -587,7 +655,6 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        {/* Back to Home */}
         <div className="mt-8 text-center">
           <Link
             href="/"
