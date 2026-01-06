@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function Footer() {
@@ -8,8 +9,14 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center text-xl">
-                🌱
+              <div className="w-11 h-11 rounded-xl overflow-hidden">
+                <Image
+                  src="/icons/icon-512x512.png"
+                  alt="CĐHC Logo"
+                  width={44}
+                  height={44}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <strong className="block text-base font-bold">

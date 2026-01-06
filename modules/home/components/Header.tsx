@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -32,8 +33,14 @@ export function Header() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center text-white text-xl">
-                🌱
+              <div className="w-11 h-11 rounded-xl overflow-hidden">
+                <Image
+                  src="/icons/icon-512x512.png"
+                  alt="CĐHC Logo"
+                  width={44}
+                  height={44}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="hidden sm:block">
                 <strong

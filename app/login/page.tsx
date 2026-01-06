@@ -532,8 +532,14 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3 mb-4">
-            <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center text-2xl">
-              🌱
+            <div className="w-14 h-14 rounded-2xl overflow-hidden">
+              <Image
+                src="/icons/icon-512x512.png"
+                alt="CĐHC Logo"
+                width={56}
+                height={56}
+                className="w-full h-full object-cover"
+              />
             </div>
           </Link>
           <h1
