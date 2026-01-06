@@ -41,6 +41,20 @@ const formatNumber = (value: string | number | null | undefined): string => {
   return num.toLocaleString("vi-VN");
 };
 
+const formatBirthDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return "Chưa cập nhật";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "Chưa cập nhật";
+  }
+};
+
 export function CommunityDashboardClient() {
   const router = useRouter();
 
@@ -562,6 +576,13 @@ export function CommunityDashboardClient() {
               </div>
 
               <div>
+                <dt className="text-xs text-gray-500 mb-1">Ngày sinh</dt>
+                <dd className="font-semibold text-gray-900">
+                  {formatBirthDate(profile?.birthDate)}
+                </dd>
+              </div>
+
+              <div>
                 <dt className="text-xs text-gray-500 mb-1">Số điện thoại</dt>
                 <dd className="font-semibold text-gray-900">
                   {profile?.phone || "Chưa cập nhật"}
@@ -582,7 +603,7 @@ export function CommunityDashboardClient() {
                 </dd>
               </div>
 
-              <div className="col-span-2">
+              <div>
                 <dt className="text-xs text-gray-500 mb-1">
                   Sản phẩm quan tâm
                 </dt>
@@ -818,6 +839,12 @@ export function CommunityDashboardClient() {
                     <dt className="text-xs text-gray-500 mb-1">Họ và tên</dt>
                     <dd className="font-semibold text-gray-900">
                       {profile?.fullName || "Chưa cập nhật"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-gray-500 mb-1">Ngày sinh</dt>
+                    <dd className="font-semibold text-gray-900">
+                      {formatBirthDate(profile?.birthDate)}
                     </dd>
                   </div>
                   <div>
