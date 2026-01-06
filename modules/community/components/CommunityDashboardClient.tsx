@@ -641,12 +641,13 @@ export function CommunityDashboardClient() {
             Đăng xuất
           </button>
 
-          {/* Points Conversion Modal (for mobile) */}
+          {/* Points Conversion Modal (for mobile - only render modal, no inline content) */}
           <PointsConversionSection
             profile={profile}
             onConversionSuccess={refreshProfile}
             externalModalOpen={isConversionModalOpen}
             onExternalModalClose={() => setIsConversionModalOpen(false)}
+            showOnlyModal
           />
         </div>
 
