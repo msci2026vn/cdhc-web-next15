@@ -192,7 +192,6 @@ export function FarmerForm({
         value={formData.farmSize}
         otherValue=""
         onChange={(v) => {
-          console.log("[FarmerForm] farmSize onChange:", v);
           setFormData((prev) => ({ ...prev, farmSize: v }));
         }}
         onOtherChange={() => {}}
@@ -257,7 +256,6 @@ export function FarmerForm({
           value={formData.certificateType}
           otherValue={formData.certificateTypeOther}
           onChange={(v) => {
-            console.log("[FarmerForm] certificateType onChange:", v);
             setFormData((prev) => ({ ...prev, certificateType: v }));
           }}
           onOtherChange={(v) => {

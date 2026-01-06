@@ -264,9 +264,8 @@ export default function LoginPage() {
         setIdToken(response.credential);
         setStep(1);
 
-        // 🆕 CHECK LEGACY USER
+        // Check legacy user from old system
         if (data.isLegacyUser && data.legacyData) {
-          console.log("[Legacy User Detected]", data.legacyData);
           setLegacyData(data.legacyData);
 
           // Auto-select role for legacy users (always community)
@@ -361,12 +360,6 @@ export default function LoginPage() {
         profile: profileData,
       };
 
-      // DEBUG: Log payload being sent
-      console.log("=== REGISTER REQUEST ===");
-      console.log("URL:", `${API_URL}/api/auth/google/register`);
-      console.log("Payload:", JSON.stringify(payload, null, 2));
-      console.log("Profile data:", profileData);
-
       const res = await fetch(`${API_URL}/api/auth/google/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -386,19 +379,8 @@ export default function LoginPage() {
         };
       };
 
-      // DEBUG: Log response
-      console.log("=== REGISTER RESPONSE ===");
-      console.log("Status:", res.status);
-      console.log("Response data:", JSON.stringify(data, null, 2));
-
       // Handle specific HTTP errors
       if (res.status === 400) {
-        console.error("=== 400 ERROR DETAILS ===");
-        console.error("Error code:", data.error?.code);
-        console.error("Error message:", data.error?.message);
-        console.error("Error details:", data.error?.details);
-        console.error("Full error:", data.error);
-
         if (data.error?.code === "PROFILE_REQUIRED") {
           toast.error("Thông tin hồ sơ là bắt buộc");
         } else if (data.error?.code === "VALIDATION_ERROR") {

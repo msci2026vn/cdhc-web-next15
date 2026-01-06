@@ -129,7 +129,14 @@ const serwist = new Serwist({
   runtimeCaching: cdchCacheRules,
   precacheOptions: {
     cleanupOutdatedCaches: true,
-    ignoreURLParametersMatching: [/.*/],
+    // Only ignore common cache-busting and tracking parameters
+    ignoreURLParametersMatching: [
+      /^utm_/, // UTM tracking parameters
+      /^fbclid$/, // Facebook click ID
+      /^gclid$/, // Google click ID
+      /^_ga$/, // Google Analytics
+      /^__next_private_/, // Next.js internal params
+    ],
   },
   disableDevLogs: true,
   fallbacks: {
@@ -205,7 +212,6 @@ self.addEventListener("sync", (event) => {
 });
 
 async function syncPendingOrders(): Promise<void> {
-  console.log("Syncing pending orders...");
   // Handled by BackgroundSyncPlugin
 }
 

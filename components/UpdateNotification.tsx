@@ -50,13 +50,11 @@ export function UpdateNotification() {
 
     // New SW is waiting to activate
     workbox.addEventListener("waiting", (event) => {
-      console.log("[PWA] New service worker waiting");
       showUpdateNotification(event.sw ?? null);
     });
 
     // New SW took control (after skipWaiting)
     workbox.addEventListener("controlling", () => {
-      console.log("[PWA] New service worker controlling, reloading...");
       window.location.reload();
     });
 
@@ -64,32 +62,32 @@ export function UpdateNotification() {
     workbox.addEventListener("activated", (event) => {
       // Only show if this is NOT the first install
       if (!event.isUpdate) {
-        console.log("[PWA] Service worker installed for first time");
         return;
       }
-      console.log("[PWA] Service worker updated and activated");
     });
 
     // Check if there's already a waiting SW
     workbox.register().then((registration) => {
       if (registration?.waiting) {
-        console.log("[PWA] Found waiting service worker on register");
         showUpdateNotification(registration.waiting);
       }
 
-      // Also check periodically for updates (every 60 seconds)
-      const checkInterval = setInterval(() => {
-        registration?.update().catch(() => {
-          // Ignore errors
-        });
-      }, 60 * 1000);
+      // Check periodically for updates (every 5 minutes - reasonable for production)
+      const checkInterval = setInterval(
+        () => {
+          registration?.update().catch(() => {
+            // Ignore errors
+          });
+        },
+        5 * 60 * 1000
+      ); // 5 minutes
 
       return () => clearInterval(checkInterval);
     });
 
     // Listen for SW state changes directly
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      console.log("[PWA] Controller changed");
+      // Controller changed - new SW is now active
     });
   }, [showUpdateNotification]);
 

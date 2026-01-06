@@ -33,8 +33,9 @@ async function loadProvinces(): Promise<Record<string, ProvinceData>> {
   if (provincesCache) return provincesCache;
 
   const response = await fetch("/tinh.json");
-  provincesCache = await response.json();
-  return provincesCache!;
+  const data: Record<string, ProvinceData> = await response.json();
+  provincesCache = data;
+  return data;
 }
 
 /**
@@ -44,8 +45,9 @@ async function loadWards(): Promise<Record<string, WardData>> {
   if (wardsCache) return wardsCache;
 
   const response = await fetch("/xa.json");
-  wardsCache = await response.json();
-  return wardsCache!;
+  const data: Record<string, WardData> = await response.json();
+  wardsCache = data;
+  return data;
 }
 
 /**
