@@ -824,32 +824,30 @@ export function PointsConversionSection({
               })}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Trang {page} / {totalPages}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => loadHistory(page - 1)}
-                    disabled={page === 1 || isLoadingHistory}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                  >
-                    ← Trước
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => loadHistory(page + 1)}
-                    disabled={page === totalPages || isLoadingHistory}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                  >
-                    Sau →
-                  </button>
-                </div>
+            {/* Pagination - Always show when there's history */}
+            <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+              <div className="text-sm text-gray-600">
+                Trang {page} / {totalPages}
               </div>
-            )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => loadHistory(page - 1)}
+                  disabled={page === 1 || isLoadingHistory}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                >
+                  ← Trước
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadHistory(page + 1)}
+                  disabled={page === totalPages || isLoadingHistory}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                >
+                  Sau →
+                </button>
+              </div>
+            </div>
           </>
         )}
       </div>
