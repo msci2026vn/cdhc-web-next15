@@ -178,11 +178,28 @@ export function PointsConversionSection({
       }
 
       const data = await response.json();
+      const LIMIT = 5;
 
       if (data.success) {
-        setHistory(data.conversions || []);
-        setPage(data.pagination?.page || 1);
-        setTotalPages(data.pagination?.totalPages || 1);
+        const conversions = data.conversions || [];
+        setHistory(conversions);
+        setPage(data.pagination?.page || pageNum);
+
+        // Workaround: If backend returns totalPages=1 but we got exactly LIMIT items,
+        // assume there might be more pages (allow user to try next page)
+        const backendTotalPages = data.pagination?.totalPages || 1;
+        const hasMorePages = conversions.length === LIMIT;
+
+        // If we got full page of results, assume at least one more page exists
+        if (backendTotalPages === 1 && hasMorePages && pageNum === 1) {
+          setTotalPages(pageNum + 1); // Allow navigating to next page
+        } else if (conversions.length === LIMIT) {
+          // If we got full page, there might be more
+          setTotalPages(Math.max(backendTotalPages, pageNum + 1));
+        } else {
+          // Got less than LIMIT, this is the last page
+          setTotalPages(pageNum);
+        }
       } else {
         throw new Error(data.message || "Không thể tải lịch sử");
       }
