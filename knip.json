@@ -3,7 +3,7 @@
   "entry": ["app/**/*.{ts,tsx}", "modules/**/*.{ts,tsx}"],
   "project": ["app/**/*.{ts,tsx}", "modules/**/*.{ts,tsx}"],
   "ignore": ["**/*.d.ts"],
-  "ignoreDependencies": ["tailwindcss"],
+  "ignoreDependencies": ["tailwindcss", "web-push", "workbox-window"],
   "next": {
     "entry": [
       "next.config.{js,ts,mjs}",
