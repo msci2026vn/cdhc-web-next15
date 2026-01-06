@@ -164,7 +164,7 @@ export function PointsConversionSection({
       setHistoryError(null);
 
       const response = await fetch(
-        `${API_URL}/api/points/history?page=${pageNum}&limit=10`,
+        `${API_URL}/api/points/history?page=${pageNum}&limit=5`,
         { headers: getAuthHeaders() }
       );
 
