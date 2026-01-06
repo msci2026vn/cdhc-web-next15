@@ -590,6 +590,38 @@ export function CommunityDashboardClient() {
           </dl>
         </div>
 
+        {/* ========================================= */}
+        {/* LOGOUT BUTTON                            */}
+        {/* ========================================= */}
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("user");
+            router.push("/login");
+          }}
+          className="w-full py-4 bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl text-white font-semibold hover:bg-white/20 hover:border-white/50 transition-all flex items-center justify-center gap-3 group"
+        >
+          <svg
+            className="w-5 h-5 group-hover:translate-x-[-4px] transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            role="img"
+            aria-hidden="true"
+          >
+            <title>Đăng xuất</title>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
+          </svg>
+          Đăng xuất
+        </button>
+
         {/* Hidden Points Conversion (for modal trigger) */}
         <div className="hidden">
           <PointsConversionSection
