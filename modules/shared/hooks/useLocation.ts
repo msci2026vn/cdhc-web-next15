@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface Province {
   code: string;
@@ -36,28 +36,58 @@ export function useLocation(initialProvince = "", initialWard = "") {
   const [selectedWardCode, setSelectedWardCode] = useState(initialWard);
   const [loading, setLoading] = useState(true);
 
+  // Abort controller refs for cleanup
+  const provinceAbortRef = useRef<AbortController | null>(null);
+  const wardAbortRef = useRef<AbortController | null>(null);
+
   // Load tinh tu /public/tinh.json
   useEffect(() => {
-    fetch("/tinh.json")
+    const controller = new AbortController();
+    provinceAbortRef.current = controller;
+
+    fetch("/tinh.json", { signal: controller.signal })
       .then((res) => res.json())
       .then((data: Record<string, Province>) => {
         const provinceList = Object.values(data);
         provinceList.sort((a, b) => a.name.localeCompare(b.name, "vi"));
         setProvinces(provinceList);
       })
-      .catch(console.error);
+      .catch((err) => {
+        // Ignore abort errors
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
+        console.error(err);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   // Load xa tu /public/xa.json
   useEffect(() => {
-    fetch("/xa.json")
+    const controller = new AbortController();
+    wardAbortRef.current = controller;
+
+    fetch("/xa.json", { signal: controller.signal })
       .then((res) => res.json())
       .then((data: Record<string, Ward>) => {
         const wardList = Object.values(data);
         setAllWards(wardList);
         setLoading(false);
       })
-      .catch(console.error);
+      .catch((err) => {
+        // Ignore abort errors
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
+        console.error(err);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   // Loc xa theo tinh da chon (dung parent_code)

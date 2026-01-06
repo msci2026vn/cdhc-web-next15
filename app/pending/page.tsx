@@ -438,8 +438,20 @@ export default function PendingPage() {
   const [user] = useState<User | null>(getInitialUser);
   const [profile] = useState<Profile | null>(getInitialProfile);
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
+  const handleLogout = async () => {
+    try {
+      // Call backend logout to clear HttpOnly cookies
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn"}/api/auth/logout`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+    } catch {
+      // Continue logout even if API fails
+    }
+    // Clear local storage data
     localStorage.removeItem("user");
     localStorage.removeItem("profile");
     window.location.href = "/login";

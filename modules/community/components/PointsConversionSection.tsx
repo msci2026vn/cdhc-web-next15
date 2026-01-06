@@ -13,9 +13,9 @@
  * @strategy QUICK & DIRTY - easy to remove after 2-3 months
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { parsePointsHistoryResponse, SecureStorage } from "@/modules/shared";
+import { parsePointsHistoryResponse } from "@/modules/shared";
 
 // ============================================================
 // TYPES (INLINE - NO SEPARATE FILE)
@@ -58,14 +58,6 @@ const CONVERSION_RATES = {
 // ============================================================
 // HELPER FUNCTIONS
 // ============================================================
-const getAuthHeaders = (): HeadersInit => {
-  const token = SecureStorage.getAccessToken();
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-};
-
 const parseNumber = (value: string | number | null | undefined): number => {
   if (!value) return 0;
   const num = typeof value === "string" ? parseFloat(value) : value;
@@ -160,20 +152,35 @@ export function PointsConversionSection({
   const canConvert =
     inputAmount > 0 && inputAmount <= maxAmount && !isConverting;
 
+  // ===== ABORT CONTROLLER REF =====
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // ===== LOAD HISTORY =====
   const loadHistory = useCallback(async (pageNum: number) => {
+    // Cancel previous request if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setIsLoadingHistory(true);
       setHistoryError(null);
 
       const response = await fetch(
         `${API_URL}/api/points/history?page=${pageNum}&limit=5`,
-        { headers: getAuthHeaders() }
+        {
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          signal: controller.signal,
+        }
       );
 
       if (!response.ok) {
         if (response.status === 401) {
-          SecureStorage.clearAuth();
           window.location.href = "/login";
           return;
         }
@@ -210,6 +217,10 @@ export function PointsConversionSection({
         throw new Error(data.error || "Không thể tải lịch sử");
       }
     } catch (err: unknown) {
+      // Ignore abort errors
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       const message =
         err instanceof Error ? err.message : "Không thể tải lịch sử";
       console.error("Failed to load history:", err);
@@ -220,9 +231,16 @@ export function PointsConversionSection({
     }
   }, []);
 
-  // Load history on mount
+  // Load history on mount and cleanup on unmount
   useEffect(() => {
     loadHistory(1);
+
+    // Cleanup: abort any pending request on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [loadHistory]);
 
   // ===== CONVERT POINTS =====
@@ -247,7 +265,8 @@ export function PointsConversionSection({
 
       const response = await fetch(`${API_URL}/api/points/convert`, {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           fromType: convertType,
           amount: inputAmount,
@@ -257,7 +276,6 @@ export function PointsConversionSection({
 
       if (!response.ok) {
         if (response.status === 401) {
-          SecureStorage.clearAuth();
           window.location.href = "/login";
           return;
         }
@@ -322,12 +340,28 @@ export function PointsConversionSection({
     }
   };
 
+  // Ref for timeout cleanup
+  const expandTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (expandTimeoutRef.current) {
+        clearTimeout(expandTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // FIX #3: Handle button click - expand section and open modal
   const handleConvertButtonClick = () => {
     if (!isSectionExpanded) {
       setIsSectionExpanded(true);
       // Delay modal open để section expand trước
-      setTimeout(() => {
+      // Clear previous timeout if any
+      if (expandTimeoutRef.current) {
+        clearTimeout(expandTimeoutRef.current);
+      }
+      expandTimeoutRef.current = setTimeout(() => {
         handleOpenModal();
       }, 300);
     } else {

@@ -48,23 +48,37 @@ export function UpdateNotification() {
 
     setWb(workbox);
 
-    // New SW is waiting to activate
-    workbox.addEventListener("waiting", (event) => {
+    // Event handlers - store references for cleanup
+    const handleWaiting = (event: { sw?: ServiceWorker }) => {
       showUpdateNotification(event.sw ?? null);
-    });
+    };
 
-    // New SW took control (after skipWaiting)
-    workbox.addEventListener("controlling", () => {
+    const handleControlling = () => {
       window.location.reload();
-    });
+    };
 
-    // SW was updated and activated
-    workbox.addEventListener("activated", (event) => {
+    const handleActivated = (event: { isUpdate?: boolean }) => {
       // Only show if this is NOT the first install
       if (!event.isUpdate) {
         return;
       }
-    });
+    };
+
+    const handleControllerChange = () => {
+      // Controller changed - new SW is now active
+    };
+
+    // Add event listeners
+    workbox.addEventListener("waiting", handleWaiting);
+    workbox.addEventListener("controlling", handleControlling);
+    workbox.addEventListener("activated", handleActivated);
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      handleControllerChange
+    );
+
+    // Track interval for cleanup
+    let checkInterval: ReturnType<typeof setInterval> | null = null;
 
     // Check if there's already a waiting SW
     workbox.register().then((registration) => {
@@ -73,7 +87,7 @@ export function UpdateNotification() {
       }
 
       // Check periodically for updates (every 5 minutes - reasonable for production)
-      const checkInterval = setInterval(
+      checkInterval = setInterval(
         () => {
           registration?.update().catch(() => {
             // Ignore errors
@@ -81,14 +95,21 @@ export function UpdateNotification() {
         },
         5 * 60 * 1000
       ); // 5 minutes
-
-      return () => clearInterval(checkInterval);
     });
 
-    // Listen for SW state changes directly
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      // Controller changed - new SW is now active
-    });
+    // Cleanup function - properly removes all listeners and interval
+    return () => {
+      if (checkInterval) {
+        clearInterval(checkInterval);
+      }
+      workbox.removeEventListener("waiting", handleWaiting);
+      workbox.removeEventListener("controlling", handleControlling);
+      workbox.removeEventListener("activated", handleActivated);
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        handleControllerChange
+      );
+    };
   }, [showUpdateNotification]);
 
   const handleUpdate = useCallback(() => {

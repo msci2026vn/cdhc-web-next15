@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function OfflinePage() {
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [retryCount, setRetryCount] = useState<number>(0);
+  const reloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
 
     const handleOnline = () => {
       setIsOnline(true);
-      setTimeout(() => {
+      // Clear any previous timeout
+      if (reloadTimeoutRef.current) {
+        clearTimeout(reloadTimeoutRef.current);
+      }
+      reloadTimeoutRef.current = setTimeout(() => {
         window.location.reload();
       }, 1000);
     };
@@ -24,6 +29,10 @@ export default function OfflinePage() {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      // Cleanup timeout on unmount
+      if (reloadTimeoutRef.current) {
+        clearTimeout(reloadTimeoutRef.current);
+      }
     };
   }, []);
 

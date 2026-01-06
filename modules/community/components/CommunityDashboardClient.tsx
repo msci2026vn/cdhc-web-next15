@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getInterestLabels,
   getProvinceName,
@@ -51,14 +51,19 @@ export function CommunityDashboardClient() {
   const [searchTeam, setSearchTeam] = useState("");
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
+  // ===== ABORT CONTROLLER REF =====
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // ===== FETCH PROFILE DATA =====
   const fetchProfile = useCallback(async () => {
-    const token = SecureStorage.getAccessToken();
-
-    if (!token) {
-      router.push("/login");
-      return;
+    // Cancel previous request if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
+
+    // Create new abort controller
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     // Get Google avatar from SecureStorage (validated)
     const userData = SecureStorage.getUser();
@@ -72,9 +77,10 @@ export function CommunityDashboardClient() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          credentials: "include",
+          signal: controller.signal,
         }
       );
 
@@ -97,6 +103,10 @@ export function CommunityDashboardClient() {
         throw new Error(data.error || "Invalid response format");
       }
     } catch (err: unknown) {
+      // Ignore abort errors
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       const message =
         err instanceof Error ? err.message : "Failed to load profile";
       console.error("Error fetching profile:", err);
@@ -108,12 +118,26 @@ export function CommunityDashboardClient() {
 
   useEffect(() => {
     fetchProfile();
+
+    // Cleanup: abort any pending request on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchProfile]);
 
   // ===== REFRESH PROFILE (for points conversion) =====
+  // Uses shared abort controller to cancel if component unmounts
   const refreshProfile = useCallback(async () => {
-    const token = SecureStorage.getAccessToken();
-    if (!token) return;
+    // Cancel previous request if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const response = await fetch(
@@ -121,9 +145,10 @@ export function CommunityDashboardClient() {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          credentials: "include",
+          signal: controller.signal,
         }
       );
 
@@ -136,6 +161,10 @@ export function CommunityDashboardClient() {
         }
       }
     } catch (err) {
+      // Ignore abort errors
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       console.error("Error refreshing profile:", err);
     }
   }, []);
@@ -159,7 +188,17 @@ export function CommunityDashboardClient() {
     ) || [];
 
   // ===== LOGOUT HANDLER =====
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Call backend logout to clear HttpOnly cookies
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // Continue logout even if API fails
+    }
+    // Clear local storage data
     SecureStorage.clearAuth();
     router.push("/");
   };

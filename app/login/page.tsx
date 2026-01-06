@@ -5,7 +5,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type {
   BusinessFormData,
@@ -158,9 +158,19 @@ export default function LoginPage() {
   // Step 2: Profile form
   const [step, setStep] = useState<1 | 2>(1);
 
+  // ===== ABORT CONTROLLER REF =====
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Fetch danh sach roles khi mount
   useEffect(() => {
-    fetch(`${API_URL}/api/auth/roles`)
+    // Create abort controller for this request
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    fetch(`${API_URL}/api/auth/roles`, {
+      signal: controller.signal,
+      credentials: "include",
+    })
       .then((res) => res.json())
       .then((data: { success: boolean; roles?: RoleOption[] }) => {
         if (data.success && data.roles) {
@@ -171,7 +181,11 @@ export default function LoginPage() {
           setRoles(sortedRoles);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        // Ignore abort errors
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
         // Fallback roles if API fails
         setRoles([
           {
@@ -232,6 +246,13 @@ export default function LoginPage() {
           },
         ]);
       });
+
+    // Cleanup: abort request on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   const handleGoogleSuccess = async (response: CredentialResponse) => {
@@ -249,6 +270,7 @@ export default function LoginPage() {
       const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ idToken: response.credential }),
       });
 
@@ -287,13 +309,9 @@ export default function LoginPage() {
         }
 
         setShowRoleModal(true);
-      } else if (data.accessToken && data.user) {
-        // Use SecureStorage for validated token/user storage
-        SecureStorage.setAccessToken(data.accessToken);
+      } else if (data.user) {
+        // User data saved locally (tokens are in HttpOnly cookies)
         SecureStorage.setUser(data.user);
-        if (data.refreshToken) {
-          SecureStorage.setRefreshToken(data.refreshToken);
-        }
 
         toast.success("Đăng nhập thành công!");
 
@@ -363,6 +381,7 @@ export default function LoginPage() {
       const res = await fetch(`${API_URL}/api/auth/google/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -416,13 +435,9 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.accessToken && data.user) {
-        // Use SecureStorage for validated token/user storage
-        SecureStorage.setAccessToken(data.accessToken);
+      if (data.user) {
+        // User/profile data saved locally (tokens are in HttpOnly cookies)
         SecureStorage.setUser(data.user);
-        if (data.refreshToken) {
-          SecureStorage.setRefreshToken(data.refreshToken);
-        }
         SecureStorage.setProfile(profileData);
 
         // Clear legacy data from state
