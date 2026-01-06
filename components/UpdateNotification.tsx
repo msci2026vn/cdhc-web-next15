@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Workbox } from "workbox-window";
 
 interface ServiceWorkerState {
@@ -15,6 +15,23 @@ export function UpdateNotification() {
     showBadge: false,
     waitingWorker: null,
   });
+  const [wb, setWb] = useState<Workbox | null>(null);
+
+  const showUpdateNotification = useCallback(
+    (sw: ServiceWorker | null, immediate = false) => {
+      const dismissedTime = localStorage.getItem("pwa-update-dismissed");
+      const hoursSinceDismissed = dismissedTime
+        ? (Date.now() - Number.parseInt(dismissedTime, 10)) / (1000 * 60 * 60)
+        : Number.POSITIVE_INFINITY;
+
+      setState({
+        showBanner: immediate || hoursSinceDismissed > 1,
+        showBadge: true,
+        waitingWorker: sw,
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     if (
@@ -25,53 +42,82 @@ export function UpdateNotification() {
       return;
     }
 
-    const wb = new Workbox("/sw.js", {
+    const workbox = new Workbox("/sw.js", {
       scope: "/",
     });
 
-    // Check if dismissed recently
-    const dismissedTime = localStorage.getItem("pwa-update-dismissed");
-    const hoursSinceDismissed = dismissedTime
-      ? (Date.now() - Number.parseInt(dismissedTime, 10)) / (1000 * 60 * 60)
-      : Number.POSITIVE_INFINITY;
+    setWb(workbox);
 
-    wb.addEventListener("waiting", (event) => {
-      setState({
-        showBanner: hoursSinceDismissed > 1, // Show banner if not dismissed in last hour
-        showBadge: true,
-        waitingWorker: event.sw ?? null,
-      });
+    // New SW is waiting to activate
+    workbox.addEventListener("waiting", (event) => {
+      console.log("[PWA] New service worker waiting");
+      showUpdateNotification(event.sw ?? null);
     });
 
-    wb.addEventListener("controlling", () => {
+    // New SW took control (after skipWaiting)
+    workbox.addEventListener("controlling", () => {
+      console.log("[PWA] New service worker controlling, reloading...");
       window.location.reload();
     });
 
-    wb.register().catch((error) => {
-      console.error("Service Worker registration failed:", error);
+    // SW was updated and activated
+    workbox.addEventListener("activated", (event) => {
+      // Only show if this is NOT the first install
+      if (!event.isUpdate) {
+        console.log("[PWA] Service worker installed for first time");
+        return;
+      }
+      console.log("[PWA] Service worker updated and activated");
     });
-  }, []);
 
-  const handleUpdate = () => {
-    state.waitingWorker?.postMessage({ type: "SKIP_WAITING" });
+    // Check if there's already a waiting SW
+    workbox.register().then((registration) => {
+      if (registration?.waiting) {
+        console.log("[PWA] Found waiting service worker on register");
+        showUpdateNotification(registration.waiting);
+      }
+
+      // Also check periodically for updates (every 60 seconds)
+      const checkInterval = setInterval(() => {
+        registration?.update().catch(() => {
+          // Ignore errors
+        });
+      }, 60 * 1000);
+
+      return () => clearInterval(checkInterval);
+    });
+
+    // Listen for SW state changes directly
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      console.log("[PWA] Controller changed");
+    });
+  }, [showUpdateNotification]);
+
+  const handleUpdate = useCallback(() => {
+    if (state.waitingWorker) {
+      state.waitingWorker.postMessage({ type: "SKIP_WAITING" });
+    } else if (wb) {
+      // Force update check and reload
+      wb.messageSkipWaiting();
+    }
     localStorage.removeItem("pwa-update-dismissed");
-  };
+  }, [state.waitingWorker, wb]);
 
-  const handleMinimize = () => {
+  const handleMinimize = useCallback(() => {
     setState((prev) => ({
       ...prev,
       showBanner: false,
       showBadge: true,
     }));
     localStorage.setItem("pwa-update-dismissed", Date.now().toString());
-  };
+  }, []);
 
-  const handleBadgeClick = () => {
+  const handleBadgeClick = useCallback(() => {
     setState((prev) => ({
       ...prev,
       showBanner: true,
     }));
-  };
+  }, []);
 
   // Floating badge (minimized state)
   if (state.showBadge && !state.showBanner) {

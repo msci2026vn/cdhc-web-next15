@@ -113,10 +113,17 @@ const cdchCacheRules: RuntimeCaching[] = [
   ...defaultCache,
 ];
 
+// Listen for skip waiting message from client
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 // Initialize Serwist
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
-  skipWaiting: true,
+  skipWaiting: false, // Let user decide when to update
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: cdchCacheRules,
