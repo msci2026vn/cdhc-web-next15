@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { InstallAppButton } from "@/modules/shared/components/InstallAppButton";
 
 export function Hero() {
   return (
@@ -51,13 +54,10 @@ export function Hero() {
 
             {/* Buttons */}
             <div className="flex flex-wrap gap-4 mb-12">
-              <a
-                href="#download"
-                className="inline-flex items-center gap-2 px-8 py-4 gradient-accent text-white font-semibold rounded-full hover:shadow-xl transition-all"
-              >
+              <InstallAppButton className="inline-flex items-center gap-2 px-8 py-4 gradient-accent text-white font-semibold rounded-full hover:shadow-xl transition-all cursor-pointer">
                 <span>📥</span>
                 Tải App Miễn Phí
-              </a>
+              </InstallAppButton>
               <a
                 href="#features"
                 className="inline-flex items-center gap-2 px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-full hover:bg-white hover:text-green-700 transition-all"
