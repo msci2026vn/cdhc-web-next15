@@ -171,7 +171,7 @@ export function CommunityDashboardClient() {
   // ===== LOADING STATE =====
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-700 via-green-800 to-green-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4" />
           <p className="text-white/80">Đang tải dữ liệu...</p>
@@ -183,13 +183,13 @@ export function CommunityDashboardClient() {
   // ===== ERROR STATE =====
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-700 via-green-800 to-green-900">
         <div className="text-center bg-white rounded-2xl p-8 shadow-2xl">
           <p className="text-red-600 mb-4">❌ {error}</p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold transition-all"
+            className="px-6 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 font-semibold transition-all"
           >
             Thử lại
           </button>
@@ -200,7 +200,7 @@ export function CommunityDashboardClient() {
 
   // ===== MAIN RENDER =====
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 py-6 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-700 via-green-800 to-green-900 py-6 px-4">
       <div className="max-w-lg mx-auto space-y-6">
         {/* ========================================= */}
         {/* PROFILE CARD                             */}
@@ -220,7 +220,7 @@ export function CommunityDashboardClient() {
               className="absolute top-4 right-4 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors"
               title="Thêm"
             >
-              <span className="text-purple-600 text-xl font-light">+</span>
+              <span className="text-green-700 text-xl font-light">+</span>
             </button>
           </div>
 
@@ -229,7 +229,7 @@ export function CommunityDashboardClient() {
             <div className="relative">
               {/* Gradient Ring */}
               <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 to-purple-500 p-0.5" />
-              <div className="relative w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-purple-500 to-indigo-600 overflow-hidden shadow-xl">
+              <div className="relative w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-green-600 to-green-800 overflow-hidden shadow-xl">
                 {userAvatar ? (
                   <Image
                     src={userAvatar}
@@ -287,21 +287,21 @@ export function CommunityDashboardClient() {
             <div className="flex justify-center gap-4">
               <button
                 type="button"
-                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-100 hover:text-purple-600 transition-all"
+                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-green-100 hover:text-green-700 transition-all"
                 title="Instagram"
               >
                 📷
               </button>
               <button
                 type="button"
-                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-100 hover:text-purple-600 transition-all"
+                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-green-100 hover:text-green-700 transition-all"
                 title="X"
               >
                 𝕏
               </button>
               <button
                 type="button"
-                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-100 hover:text-purple-600 transition-all"
+                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-green-100 hover:text-green-700 transition-all"
                 title="Link"
               >
                 🔗
@@ -324,7 +324,7 @@ export function CommunityDashboardClient() {
 
                 <div className="grid grid-cols-3 gap-3">
                   {/* Rank - Full Width */}
-                  <div className="col-span-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-3 text-center">
+                  <div className="col-span-3 bg-gradient-to-r from-green-700 to-green-800 rounded-xl p-3 text-center">
                     <div className="text-xs text-white/80 uppercase tracking-wide">
                       Cấp bậc
                     </div>
@@ -389,7 +389,7 @@ export function CommunityDashboardClient() {
               onClick={() => setActiveTab("exchange")}
               className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all ${
                 activeTab === "exchange"
-                  ? "bg-white shadow-md text-purple-600"
+                  ? "bg-white shadow-md text-green-700"
                   : "text-gray-500 hover:bg-gray-100"
               }`}
             >
@@ -401,7 +401,7 @@ export function CommunityDashboardClient() {
               onClick={() => setActiveTab("team")}
               className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all ${
                 activeTab === "team"
-                  ? "bg-white shadow-md text-purple-600"
+                  ? "bg-white shadow-md text-green-700"
                   : "text-gray-500 hover:bg-gray-100"
               }`}
             >
@@ -413,7 +413,7 @@ export function CommunityDashboardClient() {
               onClick={() => setActiveTab("history")}
               className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all ${
                 activeTab === "history"
-                  ? "bg-white shadow-md text-purple-600"
+                  ? "bg-white shadow-md text-green-700"
                   : "text-gray-500 hover:bg-gray-100"
               }`}
             >
@@ -463,7 +463,7 @@ export function CommunityDashboardClient() {
                 <div className="grid grid-cols-3 gap-3 mb-5">
                   <div className="bg-gray-50 rounded-xl p-3 text-center">
                     <div className="text-xs text-gray-500">Tổng số</div>
-                    <div className="text-xl font-bold text-purple-600">
+                    <div className="text-xl font-bold text-green-700">
                       {profile?.legacyF1Total || 0}
                     </div>
                   </div>
@@ -485,7 +485,7 @@ export function CommunityDashboardClient() {
                   placeholder="🔍 Tìm kiếm đồng đội..."
                   value={searchTeam}
                   onChange={(e) => setSearchTeam(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl mb-5 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl mb-5 focus:border-green-600 focus:ring-2 focus:ring-green-200 transition-all outline-none"
                 />
 
                 {/* Team Members List */}
@@ -497,7 +497,7 @@ export function CommunityDashboardClient() {
                           key={f1.id || index}
                           className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
                         >
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center text-white font-semibold">
                             {f1.n.charAt(0)}
                           </div>
                           <div className="flex-1">

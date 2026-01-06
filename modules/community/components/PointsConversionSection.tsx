@@ -318,7 +318,7 @@ export function PointsConversionSection({
       <div>
         {isLoadingHistory ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mx-auto mb-3" />
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-700 mx-auto mb-3" />
             <p className="text-gray-500">Đang tải lịch sử...</p>
           </div>
         ) : historyError ? (
@@ -327,7 +327,7 @@ export function PointsConversionSection({
             <button
               type="button"
               onClick={() => loadHistory(1)}
-              className="px-4 py-2 text-purple-600 hover:text-purple-700 font-semibold"
+              className="px-4 py-2 text-green-700 hover:text-green-800 font-semibold"
             >
               Thử lại
             </button>
