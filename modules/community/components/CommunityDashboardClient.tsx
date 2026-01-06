@@ -653,17 +653,28 @@ export function CommunityDashboardClient() {
       {/* DESKTOP LAYOUT (>= lg)                        */}
       {/* ============================================== */}
       <div className="hidden lg:block min-h-screen bg-gray-100">
-        <div className="container mx-auto px-8 py-8 max-w-7xl">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Dashboard Cộng đồng
-            </h1>
-            <p className="text-gray-600">
-              Chào mừng {profile?.fullName || "bạn"} 👋
-            </p>
+        {/* Hero Banner with Background Image */}
+        <div
+          className="h-48 bg-cover bg-center relative"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1600&q=80')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+          <div className="absolute inset-0 flex items-center">
+            <div className="container mx-auto px-8 max-w-7xl">
+              <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                Dashboard Cộng đồng
+              </h1>
+              <p className="text-white/90 text-lg drop-shadow">
+                Chào mừng {profile?.fullName || "bạn"} 👋
+              </p>
+            </div>
           </div>
+        </div>
 
+        <div className="container mx-auto px-8 py-8 max-w-7xl -mt-12 relative z-10">
           {/* Main Content - 2 Columns */}
           <div className="grid grid-cols-3 gap-8">
             {/* LEFT COLUMN - Profile & Legacy Data */}
