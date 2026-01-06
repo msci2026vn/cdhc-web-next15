@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { parsePointsHistoryResponse, SecureStorage } from "@/modules/shared";
 
 // ============================================================
 // TYPES (INLINE - NO SEPARATE FILE)
@@ -58,7 +59,7 @@ const CONVERSION_RATES = {
 // HELPER FUNCTIONS
 // ============================================================
 const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("accessToken");
+  const token = SecureStorage.getAccessToken();
   return {
     "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -172,18 +173,21 @@ export function PointsConversionSection({
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem("accessToken");
+          SecureStorage.clearAuth();
           window.location.href = "/login";
           return;
         }
         throw new Error("Không thể tải lịch sử");
       }
 
-      const data = await response.json();
+      const rawData = await response.json();
       const LIMIT = 5;
 
+      // Validate API response with Zod schema
+      const data = parsePointsHistoryResponse(rawData);
+
       if (data.success) {
-        const conversions = data.conversions || [];
+        const conversions = data.conversions;
         setHistory(conversions);
         setPage(data.pagination?.page || pageNum);
 
@@ -203,7 +207,7 @@ export function PointsConversionSection({
           setTotalPages(pageNum);
         }
       } else {
-        throw new Error(data.message || "Không thể tải lịch sử");
+        throw new Error(data.error || "Không thể tải lịch sử");
       }
     } catch (err: unknown) {
       const message =
@@ -253,7 +257,7 @@ export function PointsConversionSection({
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem("accessToken");
+          SecureStorage.clearAuth();
           window.location.href = "/login";
           return;
         }

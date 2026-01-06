@@ -27,6 +27,8 @@ import {
   KolForm,
   ShopForm,
 } from "@/modules/shared/components/forms";
+import { SecureStorage } from "@/modules/shared/lib/secure-storage";
+import { hasRequiredProfileFields } from "@/modules/shared/lib/validation";
 
 type Role =
   | "farmer"
@@ -287,10 +289,11 @@ export default function LoginPage() {
 
         setShowRoleModal(true);
       } else if (data.accessToken && data.user) {
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // Use SecureStorage for validated token/user storage
+        SecureStorage.setAccessToken(data.accessToken);
+        SecureStorage.setUser(data.user);
         if (data.refreshToken) {
-          localStorage.setItem("refreshToken", data.refreshToken);
+          SecureStorage.setRefreshToken(data.refreshToken);
         }
 
         toast.success("Đăng nhập thành công!");
@@ -337,23 +340,11 @@ export default function LoginPage() {
       return;
     }
 
-    // Safety check: Validate common required fields
-    if (
-      (profileData as any).fullName === "" || // Check empty string specifically if it exists
-      (!(profileData as any).province &&
-        (profileData as any).province !== undefined) || // Check if prov exists but is empty
-      (!(profileData as any).ward && (profileData as any).ward !== undefined) // Check if ward exists but is empty
-    ) {
-      // Note: This is a loose check. True validation happens in the form component.
-      // We mainly want to catch obvious empty submissions passed through.
-    }
-
-    // A more specific check for Community/Farmer who definitely have these fields
+    // Type-safe validation for Community/Farmer roles
+    // These roles require fullName, province, and ward fields
     if (
       (selectedRole === "community" || selectedRole === "farmer") &&
-      (!(profileData as any).fullName ||
-        !(profileData as any).province ||
-        !(profileData as any).ward)
+      !hasRequiredProfileFields(profileData)
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
@@ -388,7 +379,11 @@ export default function LoginPage() {
         accessToken?: string;
         user?: User;
         refreshToken?: string;
-        error?: { code: string; message: string; details?: any };
+        error?: {
+          code: string;
+          message: string;
+          details?: Array<{ path?: string[]; message?: string }>;
+        };
       };
 
       // DEBUG: Log response
@@ -413,7 +408,10 @@ export default function LoginPage() {
           const details = data.error?.details;
           if (Array.isArray(details) && details.length > 0) {
             const errorMessages = details
-              .map((d: any) => `${d.path?.join(".")}: ${d.message}`)
+              .map(
+                (d) =>
+                  `${d.path?.join(".") ?? "field"}: ${d.message ?? "invalid"}`
+              )
               .join(", ");
             toast.error(`Lỗi validation: ${errorMessages}`);
           } else {
@@ -437,14 +435,15 @@ export default function LoginPage() {
       }
 
       if (data.accessToken && data.user) {
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // Use SecureStorage for validated token/user storage
+        SecureStorage.setAccessToken(data.accessToken);
+        SecureStorage.setUser(data.user);
         if (data.refreshToken) {
-          localStorage.setItem("refreshToken", data.refreshToken);
+          SecureStorage.setRefreshToken(data.refreshToken);
         }
-        localStorage.setItem("profile", JSON.stringify(profileData));
+        SecureStorage.setProfile(profileData);
 
-        // 🆕 CLEAR LEGACY DATA
+        // Clear legacy data from state
         setLegacyData(null);
 
         const message = legacyData
@@ -458,9 +457,10 @@ export default function LoginPage() {
           router.push(ROLE_REDIRECTS[data.user.role]); // Now safe because data.user is typed
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      toast.error(err.message || "Lỗi kết nối server");
+      const message = err instanceof Error ? err.message : "Lỗi kết nối server";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

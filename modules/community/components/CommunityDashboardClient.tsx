@@ -7,32 +7,13 @@ import {
   getInterestLabels,
   getProvinceName,
   getWardName,
+  parseProfileResponse,
+  SecureStorage,
 } from "@/modules/shared";
-import { PointsConversionSection } from "./PointsConversionSection";
-
 // ===== TYPES =====
-interface ProfileData {
-  fullName: string;
-  phone: string;
-  birthDate: string | null;
-  province: string;
-  ward: string;
-  interests: string[];
-  interestsOther: string | null;
-  // Legacy fields
-  legacyRank?: string | null;
-  legacyShares?: string | null;
-  legacyOgn?: string | null;
-  legacyTor?: string | null;
-  legacyF1Total?: number | null;
-  legacyF1s?: Array<{
-    id: string;
-    n: string;
-    p: string;
-  }> | null;
-  createdAt: string;
-  updatedAt: string;
-}
+// Import ProfileData type from validation schema
+import type { ProfileData } from "@/modules/shared/lib/validation";
+import { PointsConversionSection } from "./PointsConversionSection";
 
 // ===== HELPER FUNCTIONS =====
 const formatNumber = (value: string | number | null | undefined): string => {
@@ -72,24 +53,17 @@ export function CommunityDashboardClient() {
 
   // ===== FETCH PROFILE DATA =====
   const fetchProfile = useCallback(async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = SecureStorage.getAccessToken();
 
     if (!token) {
       router.push("/login");
       return;
     }
 
-    // Get Google avatar from localStorage
-    try {
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        const userData = JSON.parse(userStr);
-        if (userData.picture) {
-          setUserAvatar(userData.picture);
-        }
-      }
-    } catch {
-      // Ignore parse error
+    // Get Google avatar from SecureStorage (validated)
+    const userData = SecureStorage.getUser();
+    if (userData?.picture) {
+      setUserAvatar(userData.picture);
     }
 
     try {
@@ -106,21 +80,21 @@ export function CommunityDashboardClient() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
+          SecureStorage.clearAuth();
           router.push("/login");
           return;
         }
         throw new Error("Failed to fetch profile");
       }
 
-      const data = await response.json();
+      const rawData = await response.json();
+      // Validate API response with Zod schema
+      const data = parseProfileResponse(rawData);
 
       if (data.success && data.profile) {
         setProfile(data.profile);
       } else {
-        throw new Error("Invalid response format");
+        throw new Error(data.error || "Invalid response format");
       }
     } catch (err: unknown) {
       const message =
@@ -138,7 +112,7 @@ export function CommunityDashboardClient() {
 
   // ===== REFRESH PROFILE (for points conversion) =====
   const refreshProfile = useCallback(async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = SecureStorage.getAccessToken();
     if (!token) return;
 
     try {
@@ -154,7 +128,9 @@ export function CommunityDashboardClient() {
       );
 
       if (response.ok) {
-        const data = await response.json();
+        const rawData = await response.json();
+        // Validate API response with Zod schema
+        const data = parseProfileResponse(rawData);
         if (data.success && data.profile) {
           setProfile(data.profile);
         }
@@ -184,9 +160,7 @@ export function CommunityDashboardClient() {
 
   // ===== LOGOUT HANDLER =====
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
+    SecureStorage.clearAuth();
     router.push("/");
   };
 
