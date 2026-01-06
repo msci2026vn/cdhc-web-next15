@@ -66,7 +66,7 @@ export default function RootLayout({
         />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <meta name="apple-mobile-web-app-title" content="CDHC" />
       </head>
       <body className="bg-white text-slate-600">
         <Providers>{children}</Providers>

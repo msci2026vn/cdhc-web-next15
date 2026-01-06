@@ -146,8 +146,8 @@ self.addEventListener("push", (event) => {
   // Extended NotificationOptions for service worker context
   const options = {
     body: data.body,
-    icon: data.icon || "/icons/icon-192x192.png",
-    badge: "/icons/badge-72x72.png",
+    icon: data.icon || "/icons/icon-512x512.png",
+    badge: "/icons/icon-180x180.png",
     vibrate: [100, 50, 100],
     tag: data.tag || "cdhc-notification",
     renotify: true,
