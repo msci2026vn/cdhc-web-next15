@@ -1,6 +1,6 @@
 {
   "name": "Con Đường Hữu Cơ",
-  "short_name": "CDHC",
+  "short_name": "CĐHC",
   "description": "Kết nối nông dân và người tiêu dùng - Nông sản hữu cơ chất lượng cao",
   "start_url": "/",
   "display": "standalone",
@@ -17,7 +17,7 @@
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icons/icon-512x512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
