@@ -231,6 +231,14 @@ export function CommunityDashboardClient() {
       {/* ============================================== */}
       <div className="lg:hidden min-h-screen bg-gradient-to-br from-green-700 via-green-800 to-green-900 py-6 px-4">
         <div className="max-w-lg mx-auto space-y-6">
+          {/* DASHBOARD HEADER - MOBILE (moved to top) */}
+          <div className="text-white">
+            <h1 className="text-2xl font-bold">Dashboard Cộng đồng</h1>
+            <p className="text-white/80">
+              Chào mừng {profile?.fullName || "bạn"} 👋
+            </p>
+          </div>
+
           {/* PROFILE CARD - MOBILE */}
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
             {/* Profile Header - Background Image */}
@@ -393,14 +401,6 @@ export function CommunityDashboardClient() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* DASHBOARD HEADER - MOBILE */}
-          <div className="text-white">
-            <h1 className="text-2xl font-bold">Dashboard Cộng đồng</h1>
-            <p className="text-white/80">
-              Chào mừng {profile?.fullName || "bạn"} 👋
-            </p>
           </div>
 
           {/* TABS CONTAINER - MOBILE */}
