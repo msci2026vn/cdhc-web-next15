@@ -15,6 +15,8 @@ import {
 import type { ProfileData } from "@/modules/shared/lib/validation";
 import { PointsConversionSection } from "./PointsConversionSection";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
+
 // ===== TAB TYPE =====
 type TabType = "exchange" | "team" | "history";
 
@@ -93,17 +95,14 @@ export function CommunityDashboardClient() {
     }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/data`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          signal: controller.signal,
-        }
-      );
+      const response = await fetch(`${API_URL}/api/auth/profile/data`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        signal: controller.signal,
+      });
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -161,17 +160,14 @@ export function CommunityDashboardClient() {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/data`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          signal: controller.signal,
-        }
-      );
+      const response = await fetch(`${API_URL}/api/auth/profile/data`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        signal: controller.signal,
+      });
 
       if (response.ok) {
         const rawData = await response.json();
@@ -251,7 +247,7 @@ export function CommunityDashboardClient() {
   const handleLogout = useCallback(async () => {
     try {
       // Call backend logout to clear HttpOnly cookies
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

@@ -14,6 +14,19 @@ import { z } from "zod";
 /**
  * User data stored in localStorage after login
  */
+// Custom URL validator that only allows http/https protocols
+const safeUrlSchema = z.string().refine(
+  (url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  },
+  { message: "Invalid URL or unsupported protocol" }
+);
+
 export const UserDataSchema = z.object({
   id: z.string(),
   email: z.string().email(),
@@ -29,7 +42,7 @@ export const UserDataSchema = z.object({
     "koc",
   ]),
   status: z.enum(["pending", "approved", "rejected"]),
-  picture: z.string().url().optional(),
+  picture: safeUrlSchema.optional(),
 });
 
 export type UserData = z.infer<typeof UserDataSchema>;
