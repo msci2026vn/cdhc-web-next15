@@ -48,6 +48,7 @@ export function CommunityDashboardClient() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("exchange");
   const [searchTeam, setSearchTeam] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   // ===== LOCATION NAMES CACHE (derived from profile, cached to avoid re-fetch) =====
@@ -65,6 +66,14 @@ export function CommunityDashboardClient() {
   const handleTabExchange = useCallback(() => setActiveTab("exchange"), []);
   const handleTabTeam = useCallback(() => setActiveTab("team"), []);
   const handleTabHistory = useCallback(() => setActiveTab("history"), []);
+
+  // ===== DEBOUNCED SEARCH (300ms delay to avoid filtering on every keystroke) =====
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTeam);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTeam]);
 
   // ===== FETCH PROFILE DATA =====
   const fetchProfile = useCallback(async () => {
@@ -226,15 +235,17 @@ export function CommunityDashboardClient() {
     };
   }, [profile?.province, profile?.ward]);
 
-  // ===== FILTER F1 MEMBERS (memoized to avoid recalculation) =====
+  // ===== FILTER F1 MEMBERS (memoized, uses debounced search) =====
   const filteredF1s = useMemo(() => {
     if (!profile?.legacyF1s) return [];
-    const searchLower = searchTeam.toLowerCase();
+    if (!debouncedSearch) return profile.legacyF1s;
+    const searchLower = debouncedSearch.toLowerCase();
     return profile.legacyF1s.filter(
       (f1) =>
-        f1.n.toLowerCase().includes(searchLower) || f1.p.includes(searchTeam)
+        f1.n.toLowerCase().includes(searchLower) ||
+        f1.p.includes(debouncedSearch)
     );
-  }, [profile?.legacyF1s, searchTeam]);
+  }, [profile?.legacyF1s, debouncedSearch]);
 
   // ===== LOGOUT HANDLER (memoized) =====
   const handleLogout = useCallback(async () => {
@@ -586,7 +597,7 @@ export function CommunityDashboardClient() {
                       <div className="space-y-3 max-h-64 overflow-y-auto">
                         {filteredF1s.map((f1, index) => (
                           <div
-                            key={f1.id || index}
+                            key={f1.id || `f1-${f1.p}-${index}`}
                             className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
                           >
                             <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center text-white font-semibold">
@@ -1011,7 +1022,7 @@ export function CommunityDashboardClient() {
                   <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
                     {filteredF1s.map((f1, index) => (
                       <div
-                        key={f1.id || index}
+                        key={f1.id || `f1-${f1.p}-${index}`}
                         className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                       >
                         <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center text-white font-semibold text-lg">

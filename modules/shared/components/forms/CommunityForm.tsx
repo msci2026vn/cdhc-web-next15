@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { COMMUNITY_INTERESTS } from "../../data/form-options";
 import { LocationSelect, MultiSelectWithOther, TextField } from "../ui";
@@ -49,36 +49,44 @@ export function CommunityForm({
     Partial<Record<keyof CommunityFormData, string>>
   >({});
 
-  const validateField = (
-    field: keyof CommunityFormData,
-    value: any
-  ): string => {
-    switch (field) {
-      case "fullName":
-        if (!value || value.trim().length < 2) {
-          return "Họ và tên phải có ít nhất 2 ký tự";
-        }
-        break;
-      case "province":
-        if (!value) return "Vui lòng chọn tỉnh/thành phố";
-        break;
-      case "ward":
-        if (!value) return "Vui lòng chọn quận/huyện/xã";
-        break;
-      case "interests":
-        if (!value || value.length === 0) {
-          return "Vui lòng chọn ít nhất 1 sản phẩm quan tâm";
-        }
-        break;
-    }
-    return "";
-  };
+  // Memoized validation function (avoids recreation on every render)
+  const validateField = useCallback(
+    (field: keyof CommunityFormData, value: unknown): string => {
+      switch (field) {
+        case "fullName":
+          if (
+            !value ||
+            (typeof value === "string" && value.trim().length < 2)
+          ) {
+            return "Họ và tên phải có ít nhất 2 ký tự";
+          }
+          break;
+        case "province":
+          if (!value) return "Vui lòng chọn tỉnh/thành phố";
+          break;
+        case "ward":
+          if (!value) return "Vui lòng chọn quận/huyện/xã";
+          break;
+        case "interests":
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            return "Vui lòng chọn ít nhất 1 sản phẩm quan tâm";
+          }
+          break;
+      }
+      return "";
+    },
+    []
+  );
 
-  const handleFieldChange = (field: keyof CommunityFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    const error = validateField(field, value);
-    setErrors((prev) => ({ ...prev, [field]: error || undefined }));
-  };
+  // Memoized field change handler
+  const handleFieldChange = useCallback(
+    (field: keyof CommunityFormData, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      const error = validateField(field, value);
+      setErrors((prev) => ({ ...prev, [field]: error || undefined }));
+    },
+    [validateField]
+  );
 
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof CommunityFormData, string>> = {};
