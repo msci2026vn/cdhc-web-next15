@@ -57,6 +57,20 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
   const needsAddress =
     formData.shopType === "offline" || formData.shopType === "both";
 
+  // Validate URL to prevent XSS (javascript: protocol)
+  const validateUrl = (url: string): string | undefined => {
+    if (!url) return undefined;
+    try {
+      const parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return "URL phải bắt đầu bằng http:// hoặc https://";
+      }
+      return undefined;
+    } catch {
+      return "URL không hợp lệ";
+    }
+  };
+
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof ShopFormData, string>> = {};
 
@@ -68,6 +82,11 @@ export function ShopForm({ onSubmit, isLoading = false }: ShopFormProps) {
     if (!formData.province) newErrors.province = "Vui lòng chọn tỉnh/thành";
     if (needsAddress && !formData.address)
       newErrors.address = "Vui lòng nhập địa chỉ";
+    // Validate website URL if provided (optional field)
+    if (formData.website) {
+      const urlError = validateUrl(formData.website);
+      if (urlError) newErrors.website = urlError;
+    }
     if (formData.sellingPlatforms.length === 0)
       newErrors.sellingPlatforms = "Vui lòng chọn ít nhất 1 nền tảng";
     if (formData.productCategories.length === 0)

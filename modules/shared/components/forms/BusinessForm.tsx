@@ -70,6 +70,20 @@ export function BusinessForm({
     Partial<Record<keyof BusinessFormData, string>>
   >({});
 
+  // Validate URL to prevent XSS (javascript: protocol)
+  const validateUrl = (url: string): string | undefined => {
+    if (!url) return undefined;
+    try {
+      const parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return "URL phải bắt đầu bằng http:// hoặc https://";
+      }
+      return undefined;
+    } catch {
+      return "URL không hợp lệ";
+    }
+  };
+
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof BusinessFormData, string>> = {};
 
@@ -86,7 +100,12 @@ export function BusinessForm({
       newErrors.contactPosition = "Vui lòng chọn chức vụ";
     if (!formData.contactPhone)
       newErrors.contactPhone = "Vui lòng nhập SĐT liên hệ";
-    if (!formData.website) newErrors.website = "Vui lòng nhập website";
+    if (!formData.website) {
+      newErrors.website = "Vui lòng nhập website";
+    } else {
+      const urlError = validateUrl(formData.website);
+      if (urlError) newErrors.website = urlError;
+    }
     if (!formData.employeeCount)
       newErrors.employeeCount = "Vui lòng chọn quy mô nhân sự";
     if (formData.mainProducts.length === 0)

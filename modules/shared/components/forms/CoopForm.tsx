@@ -76,6 +76,20 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
     Partial<Record<keyof CoopFormData, string>>
   >({});
 
+  // Validate URL to prevent XSS (javascript: protocol)
+  const validateUrl = (url: string): string | undefined => {
+    if (!url) return undefined;
+    try {
+      const parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return "URL phải bắt đầu bằng http:// hoặc https://";
+      }
+      return undefined;
+    } catch {
+      return "URL không hợp lệ";
+    }
+  };
+
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof CoopFormData, string>> = {};
 
@@ -103,8 +117,14 @@ export function CoopForm({ onSubmit, isLoading = false }: CoopFormProps) {
     if (formData.hasCertificate === "yes" && !formData.certificateType)
       newErrors.certificateType = "Vui lòng chọn loại chứng nhận";
     if (!formData.hasWebsite) newErrors.hasWebsite = "Vui lòng chọn có/không";
-    if (formData.hasWebsite === "yes" && !formData.website)
-      newErrors.website = "Vui lòng nhập website";
+    if (formData.hasWebsite === "yes") {
+      if (!formData.website) {
+        newErrors.website = "Vui lòng nhập website";
+      } else {
+        const urlError = validateUrl(formData.website);
+        if (urlError) newErrors.website = urlError;
+      }
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

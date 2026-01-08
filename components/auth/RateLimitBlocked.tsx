@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface RateLimitBlockedProps {
   retryAfter: number; // seconds
@@ -13,54 +13,67 @@ export function RateLimitBlocked({
 }: RateLimitBlockedProps) {
   const [remaining, setRemaining] = useState(retryAfter);
 
-  // Use ref to track if component is mounted (prevents state updates after unmount)
+  // Refs to track mounted state and avoid stale closures
   const isMountedRef = useRef(true);
-  // Use ref for onUnblock to avoid dependency issues
   const onUnblockRef = useRef(onUnblock);
-  onUnblockRef.current = onUnblock;
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Stable callback that uses ref
-  const handleUnblock = useCallback(() => {
-    if (isMountedRef.current) {
-      onUnblockRef.current?.();
-    }
-  }, []);
+  // Keep onUnblock ref updated
+  onUnblockRef.current = onUnblock;
 
   useEffect(() => {
     isMountedRef.current = true;
 
+    // Cleanup function for all timers
+    const cleanup = () => {
+      isMountedRef.current = false;
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+
+    // Safe callback that checks mounted state
+    const safeUnblock = () => {
+      if (isMountedRef.current) {
+        onUnblockRef.current?.();
+      }
+    };
+
     // Already expired, call onUnblock immediately
     if (remaining <= 0) {
-      const timeout = setTimeout(handleUnblock, 0);
-      return () => {
-        isMountedRef.current = false;
-        clearTimeout(timeout);
-      };
+      timeoutRef.current = setTimeout(safeUnblock, 0);
+      return cleanup;
     }
 
     // Countdown timer
-    const timer = setInterval(() => {
+    timerRef.current = setInterval(() => {
       if (!isMountedRef.current) {
-        clearInterval(timer);
+        if (timerRef.current) clearInterval(timerRef.current);
         return;
       }
 
       setRemaining((r) => {
         const next = r - 1;
         if (next <= 0) {
-          clearInterval(timer);
-          // Use setTimeout to avoid calling during render
-          setTimeout(handleUnblock, 0);
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          // Schedule callback outside of state update
+          timeoutRef.current = setTimeout(safeUnblock, 0);
         }
         return Math.max(0, next);
       });
     }, 1000);
 
-    return () => {
-      isMountedRef.current = false;
-      clearInterval(timer);
-    };
-  }, [remaining, handleUnblock]);
+    return cleanup;
+  }, [remaining]);
 
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
