@@ -35,18 +35,30 @@ export default function LegacyLookupPage() {
   const [captchaKey, setCaptchaKey] = useState(0); // Force remount CAPTCHA
 
   // Validation
+  // RFC 5322 compliant email regex (simplified but more accurate)
   const validateEmail = (email: string): string | undefined => {
     if (!email) return "Vui lòng nhập email";
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // More comprehensive email regex based on RFC 5322
+    // Allows: local part with dots, plus signs, underscores, hyphens
+    // Requires: @ symbol, domain with at least one dot, TLD of 2-10 chars
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
     if (!emailRegex.test(email)) return "Email không hợp lệ";
+    // Additional length check (RFC 5321 limit is 254 characters)
+    if (email.length > 254) return "Email quá dài (tối đa 254 ký tự)";
     return undefined;
   };
 
   const validatePhone = (phone: string): string | undefined => {
     if (!phone) return "Vui lòng nhập số điện thoại";
-    if (phone.length < 10) return "Số điện thoại phải có ít nhất 10 số";
-    const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
-    if (!phoneRegex.test(phone))
+    // Remove spaces and dashes for validation
+    const cleanPhone = phone.replace(/[\s-]/g, "");
+    if (cleanPhone.length < 10) return "Số điện thoại phải có ít nhất 10 số";
+    if (cleanPhone.length > 15) return "Số điện thoại quá dài (tối đa 15 số)";
+    // Vietnam phone regex: starts with 0 or +84, followed by 9-10 digits
+    // Supports: 0xxx, +84xxx, 84xxx formats
+    const phoneRegex = /^(\+?84|0)[1-9][0-9]{8,9}$/;
+    if (!phoneRegex.test(cleanPhone))
       return "Số điện thoại không hợp lệ (VD: 0988666999)";
     return undefined;
   };

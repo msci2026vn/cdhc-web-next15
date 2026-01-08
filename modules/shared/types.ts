@@ -70,7 +70,8 @@ export type LegacyErrorCode =
   | "CAPTCHA_EXPIRED"
   | "NOT_FOUND"
   | "VALIDATION_ERROR"
-  | "SERVER_ERROR";
+  | "SERVER_ERROR"
+  | "TIMEOUT";
 
 export interface LegacyApiError {
   code: LegacyErrorCode;

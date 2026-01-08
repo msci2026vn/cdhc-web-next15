@@ -42,16 +42,25 @@ export class ErrorBoundary extends Component<
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    // Only store error details in development mode
+    // In production, store a sanitized error without stack trace
+    if (process.env.NODE_ENV === "development") {
+      return { hasError: true, error };
+    }
+    // Production: create a sanitized error without sensitive details
+    const sanitizedError = new Error("An error occurred");
+    sanitizedError.stack = undefined;
+    return { hasError: true, error: sanitizedError };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    // Log error to console in development, could send to error tracking service in production
+    // Log error to console in development only
     if (process.env.NODE_ENV === "development") {
       console.error("ErrorBoundary caught an error:", error);
       console.error("Component stack:", errorInfo.componentStack);
     }
-    // TODO: Send to error tracking service (Sentry, etc.) in production
+    // TODO: Send sanitized error info to error tracking service (Sentry, etc.) in production
+    // Never send stack traces or sensitive error details to external services
   }
 
   handleReset = (): void => {

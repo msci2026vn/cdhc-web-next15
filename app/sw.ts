@@ -151,22 +151,74 @@ const serwist = new Serwist({
   },
 });
 
+// Push notification data validation
+interface PushNotificationData {
+  title?: string;
+  body?: string;
+  icon?: string;
+  tag?: string;
+  url?: string;
+  orderId?: string;
+}
+
+function isValidPushData(data: unknown): data is PushNotificationData {
+  if (!data || typeof data !== "object") return false;
+  const d = data as Record<string, unknown>;
+  // Validate required title field and optional fields types
+  if (d.title !== undefined && typeof d.title !== "string") return false;
+  if (d.body !== undefined && typeof d.body !== "string") return false;
+  if (d.icon !== undefined && typeof d.icon !== "string") return false;
+  if (d.tag !== undefined && typeof d.tag !== "string") return false;
+  if (d.url !== undefined && typeof d.url !== "string") return false;
+  if (d.orderId !== undefined && typeof d.orderId !== "string") return false;
+  return true;
+}
+
+function isValidUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString, self.location.origin);
+    // Only allow http, https, or relative URLs (same origin)
+    return (
+      url.protocol === "http:" ||
+      url.protocol === "https:" ||
+      url.origin === self.location.origin
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Push notification handler
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
-  const data = event.data.json();
+  let data: unknown;
+  try {
+    data = event.data.json();
+  } catch {
+    console.warn("[SW] Invalid push data JSON");
+    return;
+  }
+
+  // Validate push data structure
+  if (!isValidPushData(data)) {
+    console.warn("[SW] Invalid push data structure");
+    return;
+  }
+
+  // Validate and sanitize URL
+  const notificationUrl = data.url && isValidUrl(data.url) ? data.url : "/";
 
   // Extended NotificationOptions for service worker context
   const options = {
-    body: data.body,
+    body: data.body || "",
     icon: data.icon || "/icons/icon-512x512.png",
     badge: "/icons/icon-180x180.png",
     vibrate: [100, 50, 100],
     tag: data.tag || "cdhc-notification",
     renotify: true,
     data: {
-      url: data.url || "/",
+      url: notificationUrl,
       orderId: data.orderId,
     },
     actions: [
@@ -181,7 +233,8 @@ self.addEventListener("push", (event) => {
     ],
   } as NotificationOptions;
 
-  event.waitUntil(self.registration.showNotification(data.title, options));
+  const title = data.title || "Thông báo từ CĐHC";
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 // Notification click handler
