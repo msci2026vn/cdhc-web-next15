@@ -34,12 +34,19 @@ export async function checkRateLimit(email?: string): Promise<{
   }
 }
 
+interface RateLimitResponseData {
+  retryAfter?: number;
+  message?: string;
+  warning?: string;
+  attemptsRemaining?: number;
+}
+
 /**
  * Handle rate limit response from login/register
  */
 export function handleRateLimitResponse(response: {
   status: number;
-  data?: any;
+  data?: RateLimitResponseData;
 }): {
   isRateLimited: boolean;
   warning?: string;
