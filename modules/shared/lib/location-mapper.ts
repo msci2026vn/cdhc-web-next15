@@ -32,10 +32,21 @@ let wardsCache: Record<string, WardData> | null = null;
 async function loadProvinces(): Promise<Record<string, ProvinceData>> {
   if (provincesCache) return provincesCache;
 
-  const response = await fetch("/tinh.json");
-  const data: Record<string, ProvinceData> = await response.json();
-  provincesCache = data;
-  return data;
+  try {
+    const response = await fetch("/tinh.json");
+    if (!response.ok) {
+      console.error(
+        `[LocationMapper] Failed to load provinces: ${response.status} ${response.statusText}`
+      );
+      return {};
+    }
+    const data: Record<string, ProvinceData> = await response.json();
+    provincesCache = data;
+    return data;
+  } catch (error) {
+    console.error("[LocationMapper] Error loading provinces:", error);
+    return {};
+  }
 }
 
 /**
@@ -44,10 +55,21 @@ async function loadProvinces(): Promise<Record<string, ProvinceData>> {
 async function loadWards(): Promise<Record<string, WardData>> {
   if (wardsCache) return wardsCache;
 
-  const response = await fetch("/xa.json");
-  const data: Record<string, WardData> = await response.json();
-  wardsCache = data;
-  return data;
+  try {
+    const response = await fetch("/xa.json");
+    if (!response.ok) {
+      console.error(
+        `[LocationMapper] Failed to load wards: ${response.status} ${response.statusText}`
+      );
+      return {};
+    }
+    const data: Record<string, WardData> = await response.json();
+    wardsCache = data;
+    return data;
+  } catch (error) {
+    console.error("[LocationMapper] Error loading wards:", error);
+    return {};
+  }
 }
 
 /**

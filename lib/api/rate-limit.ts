@@ -1,3 +1,5 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
+
 /**
  * Check if user/IP is rate limited
  */
@@ -8,15 +10,12 @@ export async function checkRateLimit(email?: string): Promise<{
   attemptsRemaining?: number;
 }> {
   try {
-    const response = await fetch(
-      "https://pro.cdhc.vn/api/auth/check-rate-limit",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-        credentials: "include",
-      }
-    );
+    const response = await fetch(`${API_URL}/api/auth/check-rate-limit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+      credentials: "include",
+    });
 
     if (!response.ok) {
       return { blocked: false, attemptsRemaining: 5 };

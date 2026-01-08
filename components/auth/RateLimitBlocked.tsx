@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface RateLimitBlockedProps {
   retryAfter: number; // seconds
@@ -13,29 +13,54 @@ export function RateLimitBlocked({
 }: RateLimitBlockedProps) {
   const [remaining, setRemaining] = useState(retryAfter);
 
+  // Use ref to track if component is mounted (prevents state updates after unmount)
+  const isMountedRef = useRef(true);
+  // Use ref for onUnblock to avoid dependency issues
+  const onUnblockRef = useRef(onUnblock);
+  onUnblockRef.current = onUnblock;
+
+  // Stable callback that uses ref
+  const handleUnblock = useCallback(() => {
+    if (isMountedRef.current) {
+      onUnblockRef.current?.();
+    }
+  }, []);
+
   useEffect(() => {
+    isMountedRef.current = true;
+
+    // Already expired, call onUnblock immediately
     if (remaining <= 0) {
-      const timeout = setTimeout(() => {
-        onUnblock?.();
-      }, 0);
-      return () => clearTimeout(timeout);
+      const timeout = setTimeout(handleUnblock, 0);
+      return () => {
+        isMountedRef.current = false;
+        clearTimeout(timeout);
+      };
     }
 
+    // Countdown timer
     const timer = setInterval(() => {
+      if (!isMountedRef.current) {
+        clearInterval(timer);
+        return;
+      }
+
       setRemaining((r) => {
         const next = r - 1;
         if (next <= 0) {
           clearInterval(timer);
-          setTimeout(() => {
-            onUnblock?.();
-          }, 0);
+          // Use setTimeout to avoid calling during render
+          setTimeout(handleUnblock, 0);
         }
         return Math.max(0, next);
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [remaining, onUnblock]);
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(timer);
+    };
+  }, [remaining, handleUnblock]);
 
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
