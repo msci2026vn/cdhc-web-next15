@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getInterestLabels,
   getProvinceName,
@@ -14,6 +14,9 @@ import {
 // Import ProfileData type from validation schema
 import type { ProfileData } from "@/modules/shared/lib/validation";
 import { PointsConversionSection } from "./PointsConversionSection";
+
+// ===== TAB TYPE =====
+type TabType = "exchange" | "team" | "history";
 
 // ===== HELPER FUNCTIONS =====
 const formatNumber = (value: string | number | null | undefined): string => {
@@ -43,16 +46,25 @@ export function CommunityDashboardClient() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [provinceName, setProvinceName] = useState<string>("");
-  const [wardName, setWardName] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"exchange" | "team" | "history">(
-    "exchange"
-  );
+  const [activeTab, setActiveTab] = useState<TabType>("exchange");
   const [searchTeam, setSearchTeam] = useState("");
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
+  // ===== LOCATION NAMES CACHE (derived from profile, cached to avoid re-fetch) =====
+  // Using a map to cache resolved names by code
+  const locationCacheRef = useRef<Map<string, string>>(new Map());
+  const [locationNames, setLocationNames] = useState<{
+    province: string;
+    ward: string;
+  }>({ province: "", ward: "" });
+
   // ===== ABORT CONTROLLER REF =====
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // ===== MEMOIZED TAB HANDLERS (avoid inline functions) =====
+  const handleTabExchange = useCallback(() => setActiveTab("exchange"), []);
+  const handleTabTeam = useCallback(() => setActiveTab("team"), []);
+  const handleTabHistory = useCallback(() => setActiveTab("history"), []);
 
   // ===== FETCH PROFILE DATA =====
   const fetchProfile = useCallback(async () => {
@@ -169,26 +181,63 @@ export function CommunityDashboardClient() {
     }
   }, []);
 
-  // ===== FETCH LOCATION NAMES =====
+  // ===== FETCH LOCATION NAMES (with cache to avoid re-fetch) =====
   useEffect(() => {
-    if (profile?.province) {
-      getProvinceName(profile.province).then(setProvinceName);
-    }
-    if (profile?.ward) {
-      getWardName(profile.ward).then(setWardName);
-    }
+    let isMounted = true;
+    const cache = locationCacheRef.current;
+
+    const fetchLocationNames = async () => {
+      const newNames = { province: "", ward: "" };
+
+      // Fetch province name (check cache first)
+      if (profile?.province) {
+        const cachedProvince = cache.get(`province_${profile.province}`);
+        if (cachedProvince) {
+          newNames.province = cachedProvince;
+        } else {
+          const name = await getProvinceName(profile.province);
+          cache.set(`province_${profile.province}`, name);
+          newNames.province = name;
+        }
+      }
+
+      // Fetch ward name (check cache first)
+      if (profile?.ward) {
+        const cachedWard = cache.get(`ward_${profile.ward}`);
+        if (cachedWard) {
+          newNames.ward = cachedWard;
+        } else {
+          const name = await getWardName(profile.ward);
+          cache.set(`ward_${profile.ward}`, name);
+          newNames.ward = name;
+        }
+      }
+
+      // Only update state if still mounted
+      if (isMounted) {
+        setLocationNames(newNames);
+      }
+    };
+
+    fetchLocationNames();
+
+    return () => {
+      isMounted = false;
+    };
   }, [profile?.province, profile?.ward]);
 
-  // ===== FILTER F1 MEMBERS =====
-  const filteredF1s =
-    profile?.legacyF1s?.filter(
+  // ===== FILTER F1 MEMBERS (memoized to avoid recalculation) =====
+  const filteredF1s = useMemo(() => {
+    if (!profile?.legacyF1s) return [];
+    const searchLower = searchTeam.toLowerCase();
+    return profile.legacyF1s.filter(
       (f1) =>
-        f1.n.toLowerCase().includes(searchTeam.toLowerCase()) ||
-        f1.p.includes(searchTeam)
-    ) || [];
+        f1.n.toLowerCase().includes(searchLower) || f1.p.includes(searchTeam)
+    );
+  }, [profile?.legacyF1s, searchTeam]);
 
-  // ===== LOGOUT HANDLER =====
-  const handleLogout = async () => {
+  // ===== LOGOUT HANDLER (memoized) =====
+  const handleLogout = useCallback(async () => {
     try {
       // Call backend logout to clear HttpOnly cookies
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
@@ -201,10 +250,18 @@ export function CommunityDashboardClient() {
     // Clear local storage data
     SecureStorage.clearAuth();
     router.push("/");
-  };
+  }, [router]);
 
   // ===== CONVERSION MODAL STATE (for mobile) =====
   const [isConversionModalOpen, setIsConversionModalOpen] = useState(false);
+  const handleOpenConversionModal = useCallback(
+    () => setIsConversionModalOpen(true),
+    []
+  );
+  const handleCloseConversionModal = useCallback(
+    () => setIsConversionModalOpen(false),
+    []
+  );
 
   // ===== LOADING STATE =====
   if (isLoading) {
@@ -427,7 +484,7 @@ export function CommunityDashboardClient() {
             <div className="flex bg-gray-50 p-2 gap-2">
               <button
                 type="button"
-                onClick={() => setActiveTab("exchange")}
+                onClick={handleTabExchange}
                 className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all ${
                   activeTab === "exchange"
                     ? "bg-white shadow-md text-green-700"
@@ -439,7 +496,7 @@ export function CommunityDashboardClient() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab("team")}
+                onClick={handleTabTeam}
                 className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all ${
                   activeTab === "team"
                     ? "bg-white shadow-md text-green-700"
@@ -451,7 +508,7 @@ export function CommunityDashboardClient() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab("history")}
+                onClick={handleTabHistory}
                 className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all ${
                   activeTab === "history"
                     ? "bg-white shadow-md text-green-700"
@@ -481,7 +538,7 @@ export function CommunityDashboardClient() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setIsConversionModalOpen(true)}
+                        onClick={handleOpenConversionModal}
                         className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all shadow-lg hover:shadow-xl whitespace-nowrap"
                       >
                         Đổi điểm ngay
@@ -610,14 +667,16 @@ export function CommunityDashboardClient() {
               <div>
                 <dt className="text-xs text-gray-500 mb-1">Tỉnh/Thành phố</dt>
                 <dd className="font-semibold text-gray-900">
-                  {provinceName || profile?.province || "Chưa cập nhật"}
+                  {locationNames.province ||
+                    profile?.province ||
+                    "Chưa cập nhật"}
                 </dd>
               </div>
 
               <div>
                 <dt className="text-xs text-gray-500 mb-1">Xã/Phường</dt>
                 <dd className="font-semibold text-gray-900">
-                  {wardName || profile?.ward || "Chưa cập nhật"}
+                  {locationNames.ward || profile?.ward || "Chưa cập nhật"}
                 </dd>
               </div>
 
@@ -664,7 +723,7 @@ export function CommunityDashboardClient() {
             profile={profile}
             onConversionSuccess={refreshProfile}
             externalModalOpen={isConversionModalOpen}
-            onExternalModalClose={() => setIsConversionModalOpen(false)}
+            onExternalModalClose={handleCloseConversionModal}
             showOnlyModal
           />
         </div>
@@ -878,13 +937,15 @@ export function CommunityDashboardClient() {
                       Tỉnh/Thành phố
                     </dt>
                     <dd className="font-semibold text-gray-900">
-                      {provinceName || profile?.province || "Chưa cập nhật"}
+                      {locationNames.province ||
+                        profile?.province ||
+                        "Chưa cập nhật"}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-xs text-gray-500 mb-1">Xã/Phường</dt>
                     <dd className="font-semibold text-gray-900">
-                      {wardName || profile?.ward || "Chưa cập nhật"}
+                      {locationNames.ward || profile?.ward || "Chưa cập nhật"}
                     </dd>
                   </div>
                   <div>

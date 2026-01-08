@@ -2,22 +2,62 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+// ===== NAVIGATION DATA (moved outside to avoid recreation) =====
+const NAV_ITEMS = [
+  { href: "#features", label: "Tính Năng" },
+  { href: "#ai", label: "AI Chẩn Đoán" },
+  { href: "#marketplace", label: "Chợ Hữu Cơ" },
+  { href: "#cooperative", label: "Hợp Tác Xã" },
+  { href: "#community", label: "Cộng Đồng" },
+  { href: "#download", label: "Tải App" },
+] as const;
+
+const MOBILE_NAV_ITEMS = [
+  { href: "#features", label: "Tính Năng", icon: "📱" },
+  { href: "#ai", label: "AI Chẩn Đoán", icon: "🧠" },
+  { href: "#marketplace", label: "Chợ Hữu Cơ", icon: "🏪" },
+  { href: "#cooperative", label: "Hợp Tác Xã", icon: "👥" },
+  { href: "#community", label: "Cộng Đồng", icon: "🌍" },
+  { href: "#download", label: "Tải App", icon: "📲" },
+] as const;
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Ref to track if scroll handler is throttled
+  const ticking = useRef(false);
+
   const hamburgerLineClass = `w-6 h-0.5 transition-all ${isScrolled ? "bg-slate-800" : "bg-white"}`;
 
+  // Throttled scroll handler using requestAnimationFrame
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      if (!ticking.current) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 50);
+          ticking.current = false;
+        });
+        ticking.current = true;
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
+  }, []);
+
+  // Memoized toggle handler
+  const handleToggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen((prev) => !prev);
+  }, []);
+
+  // Memoized close handler
+  const handleCloseMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(false);
   }, []);
 
   return (
@@ -58,14 +98,7 @@ export function Header() {
 
             {/* Navigation */}
             <nav className="hidden lg:flex items-center gap-8">
-              {[
-                { href: "#features", label: "Tính Năng" },
-                { href: "#ai", label: "AI Chẩn Đoán" },
-                { href: "#marketplace", label: "Chợ Hữu Cơ" },
-                { href: "#cooperative", label: "Hợp Tác Xã" },
-                { href: "#community", label: "Cộng Đồng" },
-                { href: "#download", label: "Tải App" },
-              ].map((item) => (
+              {NAV_ITEMS.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
@@ -92,9 +125,7 @@ export function Header() {
             <button
               type="button"
               className="lg:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5"
-              onClick={() => {
-                setIsMobileMenuOpen(!isMobileMenuOpen);
-              }}
+              onClick={handleToggleMobileMenu}
             >
               <span
                 className={`${hamburgerLineClass} ${isMobileMenuOpen ? "rotate-45 translate-y-2" : ""}`}
@@ -118,21 +149,12 @@ export function Header() {
         style={{ top: "70px" }}
       >
         <nav className="flex flex-col p-6 gap-4">
-          {[
-            { href: "#features", label: "Tính Năng", icon: "📱" },
-            { href: "#ai", label: "AI Chẩn Đoán", icon: "🧠" },
-            { href: "#marketplace", label: "Chợ Hữu Cơ", icon: "🏪" },
-            { href: "#cooperative", label: "Hợp Tác Xã", icon: "👥" },
-            { href: "#community", label: "Cộng Đồng", icon: "🌍" },
-            { href: "#download", label: "Tải App", icon: "📲" },
-          ].map((item) => (
+          {MOBILE_NAV_ITEMS.map((item) => (
             <a
               key={item.href}
               href={item.href}
               className="flex items-center gap-3 p-4 text-slate-700 hover:bg-green-50 rounded-xl"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-              }}
+              onClick={handleCloseMobileMenu}
             >
               <span>{item.icon}</span>
               <span className="font-medium">{item.label}</span>

@@ -2,6 +2,7 @@
 
 import type { CredentialResponse } from "@react-oauth/google";
 import { GoogleLogin } from "@react-oauth/google";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,18 +21,58 @@ import type {
   KolFormData,
   ShopFormData,
 } from "@/modules/shared/components/forms";
-import {
-  BusinessForm,
-  CommunityForm,
-  CoopForm,
-  ExpertForm,
-  FarmerForm,
-  KocForm,
-  KolForm,
-  ShopForm,
-} from "@/modules/shared/components/forms";
 import { SecureStorage } from "@/modules/shared/lib/secure-storage";
 import { hasRequiredProfileFields } from "@/modules/shared/lib/validation";
+
+// ===== DYNAMIC IMPORTS FOR CODE SPLITTING =====
+// Only load form components when needed (reduces initial bundle size)
+const FarmerForm = dynamic(
+  () =>
+    import("@/modules/shared/components/forms").then((mod) => mod.FarmerForm),
+  { loading: () => <FormLoadingSpinner /> }
+);
+const CommunityForm = dynamic(
+  () =>
+    import("@/modules/shared/components/forms").then(
+      (mod) => mod.CommunityForm
+    ),
+  { loading: () => <FormLoadingSpinner /> }
+);
+const BusinessForm = dynamic(
+  () =>
+    import("@/modules/shared/components/forms").then((mod) => mod.BusinessForm),
+  { loading: () => <FormLoadingSpinner /> }
+);
+const CoopForm = dynamic(
+  () => import("@/modules/shared/components/forms").then((mod) => mod.CoopForm),
+  { loading: () => <FormLoadingSpinner /> }
+);
+const ShopForm = dynamic(
+  () => import("@/modules/shared/components/forms").then((mod) => mod.ShopForm),
+  { loading: () => <FormLoadingSpinner /> }
+);
+const ExpertForm = dynamic(
+  () =>
+    import("@/modules/shared/components/forms").then((mod) => mod.ExpertForm),
+  { loading: () => <FormLoadingSpinner /> }
+);
+const KolForm = dynamic(
+  () => import("@/modules/shared/components/forms").then((mod) => mod.KolForm),
+  { loading: () => <FormLoadingSpinner /> }
+);
+const KocForm = dynamic(
+  () => import("@/modules/shared/components/forms").then((mod) => mod.KocForm),
+  { loading: () => <FormLoadingSpinner /> }
+);
+
+// Loading spinner for dynamic forms
+function FormLoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" />
+    </div>
+  );
+}
 
 type Role =
   | "farmer"

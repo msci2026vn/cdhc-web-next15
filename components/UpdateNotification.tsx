@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Workbox } from "workbox-window";
 
 interface ServiceWorkerState {
@@ -33,7 +33,14 @@ export function UpdateNotification() {
     []
   );
 
+  // Ref to track interval across async operations (fixes memory leak)
+  const checkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Ref to track if component is mounted (prevents setting interval after unmount)
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (
       typeof window === "undefined" ||
       !("serviceWorker" in navigator) ||
@@ -77,31 +84,39 @@ export function UpdateNotification() {
       handleControllerChange
     );
 
-    // Track interval for cleanup
-    let checkInterval: ReturnType<typeof setInterval> | null = null;
-
     // Check if there's already a waiting SW
     workbox.register().then((registration) => {
+      // Check if still mounted before setting state/interval
+      if (!isMountedRef.current) return;
+
       if (registration?.waiting) {
         showUpdateNotification(registration.waiting);
       }
 
       // Check periodically for updates (every 5 minutes - reasonable for production)
-      checkInterval = setInterval(
-        () => {
-          registration?.update().catch(() => {
-            // Ignore errors
-          });
-        },
-        5 * 60 * 1000
-      ); // 5 minutes
+      // Only set interval if still mounted
+      if (isMountedRef.current) {
+        checkIntervalRef.current = setInterval(
+          () => {
+            registration?.update().catch(() => {
+              // Ignore errors
+            });
+          },
+          5 * 60 * 1000
+        ); // 5 minutes
+      }
     });
 
     // Cleanup function - properly removes all listeners and interval
     return () => {
-      if (checkInterval) {
-        clearInterval(checkInterval);
+      isMountedRef.current = false;
+
+      // Clear interval using ref (handles async race condition)
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+        checkIntervalRef.current = null;
       }
+
       workbox.removeEventListener("waiting", handleWaiting);
       workbox.removeEventListener("controlling", handleControlling);
       workbox.removeEventListener("activated", handleActivated);

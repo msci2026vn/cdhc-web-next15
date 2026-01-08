@@ -56,6 +56,256 @@ const CONVERSION_RATES = {
 };
 
 // ============================================================
+// CONVERSION MODAL COMPONENT (extracted to avoid duplication)
+// ============================================================
+interface ConversionModalProps {
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly convertType: "ogn" | "tor";
+  readonly setConvertType: (type: "ogn" | "tor") => void;
+  readonly amount: string;
+  readonly onAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  readonly onSetMax: () => void;
+  readonly onConvert: () => void;
+  readonly isConverting: boolean;
+  readonly error: string | null;
+  readonly currentOgn: number;
+  readonly currentTor: number;
+  readonly maxAmount: number;
+  readonly inputAmount: number;
+  readonly willReceive: number;
+  readonly remaining: number;
+  readonly newCpo: number;
+  readonly rate: number;
+  readonly canConvert: boolean;
+  readonly setError: (error: string | null) => void;
+  readonly setAmount: (amount: string) => void;
+}
+
+function ConversionModal({
+  isOpen,
+  onClose,
+  convertType,
+  setConvertType,
+  amount,
+  onAmountChange,
+  onSetMax,
+  onConvert,
+  isConverting,
+  error,
+  currentOgn,
+  currentTor,
+  maxAmount,
+  inputAmount,
+  willReceive,
+  remaining,
+  newCpo,
+  rate,
+  canConvert,
+  setError,
+  setAmount,
+}: ConversionModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <span className="text-2xl">💱</span>
+            Đổi điểm
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isConverting}
+            className="text-gray-400 hover:text-gray-600 text-2xl disabled:opacity-50"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Type Selection */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Chọn loại điểm muốn đổi
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setConvertType("ogn");
+                setAmount("");
+                setError(null);
+              }}
+              disabled={isConverting || currentOgn <= 0}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                convertType === "ogn"
+                  ? "border-orange-500 bg-orange-50"
+                  : "border-gray-200 hover:border-orange-300"
+              } ${currentOgn <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <div className="text-2xl mb-1">🔶</div>
+              <div className="font-semibold text-gray-900">Điểm OGN</div>
+              <div className="text-sm text-gray-600">
+                Có: {formatNumber(currentOgn)}
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setConvertType("tor");
+                setAmount("");
+                setError(null);
+              }}
+              disabled={isConverting || currentTor <= 0}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                convertType === "tor"
+                  ? "border-pink-500 bg-pink-50"
+                  : "border-gray-200 hover:border-pink-300"
+              } ${currentTor <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <div className="text-2xl mb-1">💎</div>
+              <div className="font-semibold text-gray-900">Điểm TOR</div>
+              <div className="text-sm text-gray-600">
+                Có: {formatNumber(currentTor)}
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Amount Input */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Số điểm muốn đổi
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={amount}
+              onChange={onAmountChange}
+              placeholder="Nhập số điểm"
+              disabled={isConverting}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+            />
+            <button
+              type="button"
+              onClick={onSetMax}
+              disabled={isConverting || maxAmount <= 0}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm text-green-600 hover:text-green-700 font-semibold hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Tất cả
+            </button>
+          </div>
+          <div className="mt-1 text-xs text-gray-500">
+            Tối đa: {formatNumber(maxAmount)} {convertType.toUpperCase()}
+          </div>
+        </div>
+
+        {/* Preview */}
+        {inputAmount > 0 && (
+          <div className="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="text-sm font-medium text-gray-700 mb-3">
+              Xem trước:
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Đổi:</span>
+                <span className="font-bold text-red-600">
+                  -{formatNumber(inputAmount)} {convertType.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Nhận được:</span>
+                <span className="font-bold text-green-600">
+                  +{formatNumber(willReceive)} CPO
+                </span>
+              </div>
+              <div className="border-t border-gray-300 my-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">
+                  {convertType.toUpperCase()} còn lại:
+                </span>
+                <span className="font-semibold text-gray-900">
+                  {formatNumber(Math.max(0, remaining))}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Tổng CPO mới:</span>
+                <span className="font-bold text-green-700 text-lg">
+                  {formatNumber(newCpo)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-2">
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isConverting}
+            className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            onClick={onConvert}
+            disabled={!canConvert}
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all"
+          >
+            {isConverting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="animate-spin h-5 w-5"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Đang xử lý...
+              </span>
+            ) : (
+              "Xác nhận đổi"
+            )}
+          </button>
+        </div>
+
+        {/* Info */}
+        <div className="mt-4 text-xs text-gray-500 text-center">
+          Tỷ lệ đổi: 1 {convertType.toUpperCase()} = {rate} CPO
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // HELPER FUNCTIONS
 // ============================================================
 const parseNumber = (value: string | number | null | undefined): number => {
@@ -387,208 +637,34 @@ export function PointsConversionSection({
     return null;
   }
 
+  // ===== SHARED MODAL PROPS =====
+  const modalProps: ConversionModalProps = {
+    isOpen: isModalOpen,
+    onClose: handleCloseModal,
+    convertType,
+    setConvertType,
+    amount,
+    onAmountChange: handleAmountChange,
+    onSetMax: handleSetMax,
+    onConvert: handleConvert,
+    isConverting,
+    error,
+    currentOgn,
+    currentTor,
+    maxAmount,
+    inputAmount,
+    willReceive,
+    remaining,
+    newCpo,
+    rate,
+    canConvert,
+    setError,
+    setAmount,
+  };
+
   // ===== SHOW ONLY MODAL MODE (for mobile - just render modal, no inline content) =====
   if (showOnlyModal) {
-    return (
-      <>
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <span className="text-2xl">💱</span>
-                  Đổi điểm
-                </h3>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  disabled={isConverting}
-                  className="text-gray-400 hover:text-gray-600 text-2xl disabled:opacity-50"
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* Type Selection */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Chọn loại điểm muốn đổi
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConvertType("ogn");
-                      setAmount("");
-                      setError(null);
-                    }}
-                    disabled={isConverting || currentOgn <= 0}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      convertType === "ogn"
-                        ? "border-orange-500 bg-orange-50"
-                        : "border-gray-200 hover:border-orange-300"
-                    } ${currentOgn <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <div className="text-2xl mb-1">🔶</div>
-                    <div className="font-semibold text-gray-900">Điểm OGN</div>
-                    <div className="text-sm text-gray-600">
-                      Có: {formatNumber(currentOgn)}
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConvertType("tor");
-                      setAmount("");
-                      setError(null);
-                    }}
-                    disabled={isConverting || currentTor <= 0}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      convertType === "tor"
-                        ? "border-pink-500 bg-pink-50"
-                        : "border-gray-200 hover:border-pink-300"
-                    } ${currentTor <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <div className="text-2xl mb-1">💎</div>
-                    <div className="font-semibold text-gray-900">Điểm TOR</div>
-                    <div className="text-sm text-gray-600">
-                      Có: {formatNumber(currentTor)}
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Amount Input */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Số điểm muốn đổi
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={amount}
-                    onChange={handleAmountChange}
-                    placeholder="Nhập số điểm"
-                    disabled={isConverting}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSetMax}
-                    disabled={isConverting || maxAmount <= 0}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm text-green-600 hover:text-green-700 font-semibold hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    Tất cả
-                  </button>
-                </div>
-                <div className="mt-1 text-xs text-gray-500">
-                  Tối đa: {formatNumber(maxAmount)} {convertType.toUpperCase()}
-                </div>
-              </div>
-
-              {/* Preview */}
-              {inputAmount > 0 && (
-                <div className="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="text-sm font-medium text-gray-700 mb-3">
-                    Xem trước:
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Đổi:</span>
-                      <span className="font-bold text-red-600">
-                        -{formatNumber(inputAmount)} {convertType.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Nhận được:</span>
-                      <span className="font-bold text-green-600">
-                        +{formatNumber(willReceive)} CPO
-                      </span>
-                    </div>
-                    <div className="border-t border-gray-300 my-2" />
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">
-                        {convertType.toUpperCase()} còn lại:
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {formatNumber(Math.max(0, remaining))}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Tổng CPO mới:</span>
-                      <span className="font-bold text-green-700 text-lg">
-                        {formatNumber(newCpo)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Error Message */}
-              {error && (
-                <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-2">
-                  <span>⚠️</span>
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  disabled={isConverting}
-                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConvert}
-                  disabled={!canConvert}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all"
-                >
-                  {isConverting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg
-                        className="animate-spin h-5 w-5"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Đang xử lý...
-                    </span>
-                  ) : (
-                    "Xác nhận đổi"
-                  )}
-                </button>
-              </div>
-
-              {/* Info */}
-              <div className="mt-4 text-xs text-gray-500 text-center">
-                Tỷ lệ đổi: 1 {convertType.toUpperCase()} = {rate} CPO
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
+    return <ConversionModal {...modalProps} />;
   }
 
   // ===== SHOW ONLY HISTORY MODE =====
@@ -750,204 +826,9 @@ export function PointsConversionSection({
       </div>
 
       {/* ========================================= */}
-      {/* MODAL (INLINE)                           */}
+      {/* MODAL (reusable component)               */}
       {/* ========================================= */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="text-2xl">💱</span>
-                Đổi điểm
-              </h3>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                disabled={isConverting}
-                className="text-gray-400 hover:text-gray-600 text-2xl disabled:opacity-50"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Type Selection */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chọn loại điểm muốn đổi
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConvertType("ogn");
-                    setAmount("");
-                    setError(null);
-                  }}
-                  disabled={isConverting || currentOgn <= 0}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    convertType === "ogn"
-                      ? "border-orange-500 bg-orange-50"
-                      : "border-gray-200 hover:border-orange-300"
-                  } ${currentOgn <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <div className="text-2xl mb-1">🔶</div>
-                  <div className="font-semibold text-gray-900">Điểm OGN</div>
-                  <div className="text-sm text-gray-600">
-                    Có: {formatNumber(currentOgn)}
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConvertType("tor");
-                    setAmount("");
-                    setError(null);
-                  }}
-                  disabled={isConverting || currentTor <= 0}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    convertType === "tor"
-                      ? "border-pink-500 bg-pink-50"
-                      : "border-gray-200 hover:border-pink-300"
-                  } ${currentTor <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <div className="text-2xl mb-1">💎</div>
-                  <div className="font-semibold text-gray-900">Điểm TOR</div>
-                  <div className="text-sm text-gray-600">
-                    Có: {formatNumber(currentTor)}
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Amount Input */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Số điểm muốn đổi
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder="Nhập số điểm"
-                  disabled={isConverting}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
-                />
-                <button
-                  type="button"
-                  onClick={handleSetMax}
-                  disabled={isConverting || maxAmount <= 0}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm text-green-600 hover:text-green-700 font-semibold hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  Tất cả
-                </button>
-              </div>
-              <div className="mt-1 text-xs text-gray-500">
-                Tối đa: {formatNumber(maxAmount)} {convertType.toUpperCase()}
-              </div>
-            </div>
-
-            {/* Preview */}
-            {inputAmount > 0 && (
-              <div className="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="text-sm font-medium text-gray-700 mb-3">
-                  Xem trước:
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Đổi:</span>
-                    <span className="font-bold text-red-600">
-                      -{formatNumber(inputAmount)} {convertType.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Nhận được:</span>
-                    <span className="font-bold text-green-600">
-                      +{formatNumber(willReceive)} CPO
-                    </span>
-                  </div>
-                  <div className="border-t border-gray-300 my-2" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">
-                      {convertType.toUpperCase()} còn lại:
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      {formatNumber(Math.max(0, remaining))}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Tổng CPO mới:</span>
-                    <span className="font-bold text-green-700 text-lg">
-                      {formatNumber(newCpo)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Error Message */}
-            {error && (
-              <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-2">
-                <span>⚠️</span>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                disabled={isConverting}
-                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleConvert}
-                disabled={!canConvert}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all"
-              >
-                {isConverting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      className="animate-spin h-5 w-5"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Đang xử lý...
-                  </span>
-                ) : (
-                  "Xác nhận đổi"
-                )}
-              </button>
-            </div>
-
-            {/* Info */}
-            <div className="mt-4 text-xs text-gray-500 text-center">
-              Tỷ lệ đổi: 1 {convertType.toUpperCase()} = {rate} CPO
-            </div>
-          </div>
-        </div>
-      )}
+      <ConversionModal {...modalProps} />
 
       {/* ========================================= */}
       {/* SECTION 2: CONVERSION HISTORY            */}
