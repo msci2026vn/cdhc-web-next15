@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { z } from "zod";
 
 interface User {
   name: string;
@@ -10,12 +11,26 @@ interface User {
   rejectionReason?: string;
 }
 
+// Zod schema for user validation
+const UserSchema = z.object({
+  name: z.string().min(1).max(200),
+  email: z.string().email().max(320),
+  role: z.string().min(1).max(50),
+  rejectionReason: z.string().max(1000).optional(),
+});
+
 function getInitialUser(): User | null {
   if (typeof window === "undefined") return null;
   const userData = localStorage.getItem("user");
   if (!userData) return null;
   try {
-    return JSON.parse(userData) as User;
+    const parsed = JSON.parse(userData);
+    const result = UserSchema.safeParse(parsed);
+    if (result.success) {
+      return result.data as User;
+    }
+    console.warn("[Security] Invalid user data in localStorage");
+    return null;
   } catch {
     return null;
   }

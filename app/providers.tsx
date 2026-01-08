@@ -3,13 +3,27 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
 
-const GOOGLE_CLIENT_ID =
-  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ??
-  "572363325691-nj5r43cqfncrmh4jc548uvhc6kavvpqe.apps.googleusercontent.com";
+// Google Client ID must be set via environment variable
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export function Providers({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Show error in development if missing, fail silently in production
+  if (!GOOGLE_CLIENT_ID) {
+    if (process.env.NODE_ENV === "development") {
+      console.error(
+        "[Security] NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is not set"
+      );
+    }
+    return (
+      <>
+        {children}
+        <Toaster position="top-right" richColors />
+      </>
+    );
+  }
+
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       {children}

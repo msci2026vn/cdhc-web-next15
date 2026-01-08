@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { z } from "zod";
 
 interface User {
   name: string;
@@ -412,12 +413,117 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("vi-VN");
 }
 
+// Validate and sanitize URL to prevent XSS
+function isValidUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    // Only allow http and https protocols
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// Sanitize URL for display (truncate long URLs)
+function sanitizeUrlForDisplay(url: string, maxLength = 50): string {
+  if (url.length <= maxLength) return url;
+  return `${url.substring(0, maxLength)}...`;
+}
+
+// Zod schemas for validation
+const UserSchema = z.object({
+  name: z.string().min(1).max(200),
+  email: z.string().email().max(320),
+  role: z.string().min(1).max(50),
+  picture: z.string().url().optional(),
+});
+
+const PlatformLinkSchema = z.object({
+  platform: z.string().max(50),
+  url: z.string().max(500),
+  followers: z.string().max(50),
+});
+
+const ProfileSchema = z
+  .object({
+    fullName: z.string().max(200).optional(),
+    phone: z.string().max(20).optional(),
+    birthDate: z.string().max(20).optional(),
+    province: z.string().max(100).optional(),
+    ward: z.string().max(100).optional(),
+    address: z.string().max(500).optional(),
+    farmSize: z.string().max(50).optional(),
+    farmType: z.array(z.string().max(50)).optional(),
+    mainProducts: z.array(z.string().max(50)).optional(),
+    mainProductsOther: z.string().max(200).optional(),
+    hasCertificate: z.string().max(10).optional(),
+    certificateType: z.string().max(50).optional(),
+    certificateTypeOther: z.string().max(200).optional(),
+    interests: z.array(z.string().max(50)).optional(),
+    interestsOther: z.string().max(200).optional(),
+    companyName: z.string().max(200).optional(),
+    taxCode: z.string().max(50).optional(),
+    businessType: z.string().max(50).optional(),
+    businessTypeOther: z.string().max(200).optional(),
+    contactName: z.string().max(200).optional(),
+    contactBirthDate: z.string().max(20).optional(),
+    contactPosition: z.string().max(50).optional(),
+    contactPositionOther: z.string().max(200).optional(),
+    contactPhone: z.string().max(20).optional(),
+    contactEmail: z.string().max(320).optional(),
+    website: z.string().max(500).optional(),
+    employeeCount: z.string().max(50).optional(),
+    coopName: z.string().max(200).optional(),
+    coopCode: z.string().max(50).optional(),
+    establishedYear: z.string().max(20).optional(),
+    representativeName: z.string().max(200).optional(),
+    representativeBirthDate: z.string().max(20).optional(),
+    representativePosition: z.string().max(50).optional(),
+    representativePositionOther: z.string().max(200).optional(),
+    memberCount: z.string().max(50).optional(),
+    farmArea: z.string().max(50).optional(),
+    hasWebsite: z.string().max(10).optional(),
+    shopName: z.string().max(200).optional(),
+    ownerName: z.string().max(200).optional(),
+    ownerBirthDate: z.string().max(20).optional(),
+    shopType: z.string().max(50).optional(),
+    sellingPlatforms: z.array(z.string().max(50)).optional(),
+    sellingPlatformsOther: z.string().max(200).optional(),
+    productCategories: z.array(z.string().max(50)).optional(),
+    productCategoriesOther: z.string().max(200).optional(),
+    expertise: z.array(z.string().max(50)).optional(),
+    expertiseOther: z.string().max(200).optional(),
+    degree: z.string().max(50).optional(),
+    experienceYears: z.string().max(50).optional(),
+    workplaceType: z.string().max(50).optional(),
+    workplaceTypeOther: z.string().max(200).optional(),
+    workplace: z.string().max(200).optional(),
+    position: z.string().max(50).optional(),
+    positionOther: z.string().max(200).optional(),
+    bio: z.string().max(1000).optional(),
+    stageName: z.string().max(200).optional(),
+    contentTypes: z.array(z.string().max(50)).optional(),
+    contentTypesOther: z.string().max(200).optional(),
+    platformLinks: z.array(PlatformLinkSchema).optional(),
+    priceRange: z.string().max(50).optional(),
+    reviewCategories: z.array(z.string().max(50)).optional(),
+    reviewCategoriesOther: z.string().max(200).optional(),
+    reviewCount: z.string().max(50).optional(),
+  })
+  .passthrough();
+
 function getInitialUser(): User | null {
   if (typeof window === "undefined") return null;
   const userData = localStorage.getItem("user");
   if (!userData) return null;
   try {
-    return JSON.parse(userData) as User;
+    const parsed = JSON.parse(userData);
+    const result = UserSchema.safeParse(parsed);
+    if (result.success) {
+      return result.data as User;
+    }
+    console.warn("[Security] Invalid user data in localStorage");
+    return null;
   } catch {
     return null;
   }
@@ -428,7 +534,13 @@ function getInitialProfile(): Profile | null {
   const profileData = localStorage.getItem("profile");
   if (!profileData) return null;
   try {
-    return JSON.parse(profileData) as Profile;
+    const parsed = JSON.parse(profileData);
+    const result = ProfileSchema.safeParse(parsed);
+    if (result.success) {
+      return result.data as Profile;
+    }
+    console.warn("[Security] Invalid profile data in localStorage");
+    return null;
   } catch {
     return null;
   }
@@ -458,7 +570,10 @@ export default function PendingPage() {
   };
 
   const renderPlatformLinks = (links: PlatformLink[]) => {
-    const validLinks = links.filter((l) => l.platform && l.url);
+    // Filter links that have platform and valid URL
+    const validLinks = links.filter(
+      (l) => l.platform && l.url && isValidUrl(l.url)
+    );
     if (validLinks.length === 0) return null;
     return (
       <div className="text-sm text-slate-600">
@@ -473,7 +588,7 @@ export default function PendingPage() {
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline"
               >
-                {link.url}
+                {sanitizeUrlForDisplay(link.url)}
               </a>
               {link.followers && (
                 <span className="text-slate-500">
