@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 interface F1Member {
   id: string;
@@ -13,17 +13,22 @@ interface TeamMemberListProps {
   variant?: "mobile" | "desktop";
 }
 
-export function TeamMemberList({
+// PERFORMANCE: Memoize to prevent re-renders when parent state changes
+export const TeamMemberList = memo(function TeamMemberList({
   members,
   variant = "mobile",
 }: TeamMemberListProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredMembers = members.filter(
-    (f1) =>
-      f1.n.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      f1.p.includes(searchTerm)
-  );
+  // Memoize filtered members to avoid re-computing on every render
+  const filteredMembers = useMemo(() => {
+    if (!searchTerm) return members;
+    const searchLower = searchTerm.toLowerCase();
+    return members.filter(
+      (f1) =>
+        f1.n.toLowerCase().includes(searchLower) || f1.p.includes(searchTerm)
+    );
+  }, [members, searchTerm]);
 
   const isMobile = variant === "mobile";
 
@@ -89,4 +94,4 @@ export function TeamMemberList({
       </div>
     </div>
   );
-}
+});

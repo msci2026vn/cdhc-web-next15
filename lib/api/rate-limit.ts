@@ -2,12 +2,23 @@ import { API_URL } from "@/lib/config";
 
 /**
  * Check if user/IP is rate limited
+ *
+ * SECURITY: On network errors or API failures, we fail OPEN (allow attempts)
+ * because the backend is the ultimate authority on rate limiting.
+ * This is acceptable because:
+ * 1. Backend enforces rate limits with HttpOnly cookies - cannot be bypassed
+ * 2. Frontend rate limit is only for UX (show warnings before being blocked)
+ * 3. If backend is unreachable, login will fail anyway
+ *
+ * If stricter frontend behavior is needed, change to fail CLOSED:
+ * return { blocked: true, attemptsRemaining: 0 };
  */
 export async function checkRateLimit(email?: string): Promise<{
   blocked: boolean;
   remainingTime?: number;
   attempts?: number;
   attemptsRemaining?: number;
+  error?: boolean;
 }> {
   try {
     const response = await fetch(`${API_URL}/api/auth/check-rate-limit`, {
@@ -18,7 +29,8 @@ export async function checkRateLimit(email?: string): Promise<{
     });
 
     if (!response.ok) {
-      return { blocked: false, attemptsRemaining: 5 };
+      // API returned error - fail open but indicate error occurred
+      return { blocked: false, attemptsRemaining: 5, error: true };
     }
 
     const data = await response.json();
@@ -29,8 +41,9 @@ export async function checkRateLimit(email?: string): Promise<{
       attemptsRemaining: data.data?.attemptsRemaining ?? 5,
     };
   } catch (_error) {
-    // On error, assume not blocked
-    return { blocked: false, attemptsRemaining: 5 };
+    // Network error - fail open but indicate error occurred
+    // Backend will still enforce rate limits via HttpOnly cookies
+    return { blocked: false, attemptsRemaining: 5, error: true };
   }
 }
 

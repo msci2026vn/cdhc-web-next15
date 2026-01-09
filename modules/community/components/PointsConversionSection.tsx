@@ -315,18 +315,22 @@ const parseNumber = (value: string | number | null | undefined): number => {
   return Number.isNaN(num) ? 0 : num;
 };
 
+// PERFORMANCE: Create formatters once, outside component to avoid recreation
+const numberFormatter = new Intl.NumberFormat("vi-VN");
+const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 const formatNumber = (value: number): string => {
-  return value.toLocaleString("vi-VN");
+  return numberFormatter.format(value);
 };
 
 const formatDateTime = (dateString: string): string => {
-  return new Date(dateString).toLocaleString("vi-VN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return dateTimeFormatter.format(new Date(dateString));
 };
 
 /**

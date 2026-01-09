@@ -17,11 +17,21 @@ export function UpdateNotification() {
   });
   const [wb, setWb] = useState<Workbox | null>(null);
 
+  // PERFORMANCE: Cache localStorage value in ref to avoid sync I/O on every call
+  const dismissedTimeRef = useRef<number | null>(null);
+
+  // Initialize cached value on mount (once)
+  useEffect(() => {
+    const stored = localStorage.getItem("pwa-update-dismissed");
+    dismissedTimeRef.current = stored ? Number.parseInt(stored, 10) : null;
+  }, []);
+
   const showUpdateNotification = useCallback(
     (sw: ServiceWorker | null, immediate = false) => {
-      const dismissedTime = localStorage.getItem("pwa-update-dismissed");
+      // Use cached value instead of reading localStorage every time
+      const dismissedTime = dismissedTimeRef.current;
       const hoursSinceDismissed = dismissedTime
-        ? (Date.now() - Number.parseInt(dismissedTime, 10)) / (1000 * 60 * 60)
+        ? (Date.now() - dismissedTime) / (1000 * 60 * 60)
         : Number.POSITIVE_INFINITY;
 
       setState({
@@ -148,7 +158,9 @@ export function UpdateNotification() {
       showBanner: false,
       showBadge: true,
     }));
-    localStorage.setItem("pwa-update-dismissed", Date.now().toString());
+    const now = Date.now();
+    dismissedTimeRef.current = now; // Update cache
+    localStorage.setItem("pwa-update-dismissed", now.toString());
   }, []);
 
   const handleBadgeClick = useCallback(() => {

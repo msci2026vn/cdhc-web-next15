@@ -102,11 +102,17 @@ body {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+  /* Performance: use GPU acceleration and isolate repaints */
+  will-change: transform;
+  contain: layout style paint;
 }
 
 .animate-float-delayed {
   animation: float 3s ease-in-out infinite;
   animation-delay: 0.5s;
+  /* Performance: use GPU acceleration and isolate repaints */
+  will-change: transform;
+  contain: layout style paint;
 }
 
 .animate-pulse-glow {

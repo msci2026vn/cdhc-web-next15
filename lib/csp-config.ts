@@ -92,12 +92,17 @@ export function getCspConfig(): CspConfig {
  */
 export function buildCspHeader(): string {
   const config = getCspConfig();
+  const isDev = process.env.NODE_ENV === "development";
 
   // Script sources
+  // SECURITY: Only allow 'unsafe-inline' in development for hot reload
+  // Production should use nonces or hashes, but 'unsafe-inline' is needed
+  // for Next.js inline scripts until we implement nonce-based CSP
   const scriptSrc = [
     "'self'",
-    "'unsafe-inline'",
-    ...(config.allowEval ? ["'unsafe-eval'"] : []),
+    // Allow unsafe-inline in dev, or in prod for Next.js compatibility
+    // TODO: Implement nonce-based CSP for production to remove unsafe-inline
+    ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : ["'unsafe-inline'"]),
     ...config.thirdParty.google,
     ...config.thirdParty.cloudflare,
   ]
@@ -105,6 +110,8 @@ export function buildCspHeader(): string {
     .join(" ");
 
   // Style sources - includes Google OAuth button styles
+  // Note: 'unsafe-inline' for styles is generally acceptable and required for
+  // CSS-in-JS libraries and inline styles. This is lower risk than script unsafe-inline.
   const styleSrc = [
     "'self'",
     "'unsafe-inline'",

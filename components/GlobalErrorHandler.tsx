@@ -4,6 +4,26 @@ import { useEffect } from "react";
 import { logger } from "@/lib/logger";
 
 /**
+ * Check if error object contains a pattern in its properties
+ * PERFORMANCE: Directly check object properties instead of JSON.stringify
+ */
+function checkErrorObject(error: object, pattern: string): boolean {
+  try {
+    // Check common error properties
+    const props = ["code", "name", "type", "reason"];
+    for (const prop of props) {
+      const value = (error as Record<string, unknown>)[prop];
+      if (typeof value === "string" && value.includes(pattern)) {
+        return true;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Global Error Handler
  *
  * Suppresses third-party script errors (onboarding.js, gads-scrapper, etc.)
@@ -42,15 +62,18 @@ export function GlobalErrorHandler() {
       ];
 
       // Check if error is from third-party script or extension
-      // Also check error object properties for translation extension errors
-      const errorStr = JSON.stringify(error || {});
-      const isThirdParty = thirdPartyPatterns.some(
-        (pattern) =>
-          stack.includes(pattern) ||
-          message.includes(pattern) ||
-          errorStr.includes(pattern) ||
-          error === undefined
-      );
+      // PERFORMANCE: Avoid JSON.stringify - check properties directly instead
+      const isThirdParty =
+        error === undefined ||
+        thirdPartyPatterns.some(
+          (pattern) =>
+            stack.includes(pattern) ||
+            message.includes(pattern) ||
+            // Check error object properties directly (faster than JSON.stringify)
+            (error &&
+              typeof error === "object" &&
+              checkErrorObject(error, pattern))
+        );
 
       if (isThirdParty) {
         logger.warn("[GlobalErrorHandler] Suppressed third-party error:", {

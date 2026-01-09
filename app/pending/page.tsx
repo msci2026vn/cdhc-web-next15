@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import { API_URL } from "@/lib/config";
@@ -549,6 +550,7 @@ function getInitialProfile(): Profile | null {
 }
 
 export default function PendingPage() {
+  const router = useRouter();
   const [user] = useState<User | null>(getInitialUser);
   const [profile] = useState<Profile | null>(getInitialProfile);
 
@@ -565,7 +567,8 @@ export default function PendingPage() {
     // Clear local storage data
     localStorage.removeItem("user");
     localStorage.removeItem("profile");
-    window.location.href = "/login";
+    // Use Next.js router for SPA navigation instead of window.location
+    router.push("/login");
   };
 
   const renderPlatformLinks = (links: PlatformLink[]) => {

@@ -21,25 +21,40 @@ import { PointsConversionSection } from "./PointsConversionSection";
 type TabType = "exchange" | "team" | "history";
 
 // ===== HELPER FUNCTIONS =====
+// PERFORMANCE: Create formatters once, outside component to avoid recreation
+const numberFormatter = new Intl.NumberFormat("vi-VN");
+const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
 const formatNumber = (value: string | number | null | undefined): string => {
   if (!value) return "0";
   const num = typeof value === "string" ? Number.parseFloat(value) : value;
-  return num.toLocaleString("vi-VN");
+  return numberFormatter.format(num);
 };
 
 const formatBirthDate = (dateString: string | null | undefined): string => {
   if (!dateString) return "Chưa cập nhật";
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return dateFormatter.format(date);
   } catch {
     return "Chưa cập nhật";
   }
 };
+
+// PERFORMANCE: Static background image styles to avoid inline object recreation
+const mobileBackgroundStyle = {
+  backgroundImage:
+    "url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80')",
+} as const;
+
+const desktopBackgroundStyle = {
+  backgroundImage:
+    "url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1600&q=80')",
+} as const;
 
 export function CommunityDashboardClient() {
   const router = useRouter();
@@ -327,10 +342,7 @@ export function CommunityDashboardClient() {
             {/* Profile Header - Background Image */}
             <div
               className="h-36 bg-cover bg-center relative"
-              style={{
-                backgroundImage:
-                  "url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80')",
-              }}
+              style={mobileBackgroundStyle}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
               <button
@@ -760,10 +772,7 @@ export function CommunityDashboardClient() {
         {/* Hero Banner with Background Image */}
         <div
           className="h-48 bg-cover bg-center relative"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1600&q=80')",
-          }}
+          style={desktopBackgroundStyle}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
           <div className="absolute inset-0 flex items-center">

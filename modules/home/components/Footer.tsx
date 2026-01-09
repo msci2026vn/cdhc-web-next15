@@ -32,24 +32,31 @@ export function Footer() {
               bệnh, sàn thương mại, truy xuất nguồn gốc, quản lý HTX.
             </p>
             <div className="flex gap-4">
-              <Link
+              {/* Use <a> for external links - next/link is optimized for internal routes only */}
+              <a
                 href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
               >
                 📘
-              </Link>
-              <Link
+              </a>
+              <a
                 href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
               >
                 ▶️
-              </Link>
-              <Link
+              </a>
+              <a
                 href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
               >
                 🎵
-              </Link>
+              </a>
             </div>
             <div className="flex flex-wrap gap-2 mt-6">
               {["USDA Organic", "TraceViet", "VietGAP"].map((badge) => (
@@ -96,20 +103,58 @@ export function Footer() {
             <h4 className="font-bold text-lg mb-6">Hỗ Trợ</h4>
             <ul className="space-y-3">
               {[
-                { label: "Hướng dẫn sử dụng", href: "/support/guide" },
-                { label: "Câu hỏi thường gặp", href: "/support/faq" },
-                { label: "Video hướng dẫn", href: "/support/videos" },
-                { label: "Hotline: 1900 xxxx", href: "tel:1900xxxx" },
-                { label: "Zalo hỗ trợ", href: "https://zalo.me/cdhc" },
+                {
+                  label: "Hướng dẫn sử dụng",
+                  href: "/support/guide",
+                  external: false,
+                },
+                {
+                  label: "Câu hỏi thường gặp",
+                  href: "/support/faq",
+                  external: false,
+                },
+                {
+                  label: "Video hướng dẫn",
+                  href: "/support/videos",
+                  external: false,
+                },
+                {
+                  label: "Hotline: 1900 xxxx",
+                  href: "tel:1900xxxx",
+                  external: true,
+                },
+                {
+                  label: "Zalo hỗ trợ",
+                  href: "https://zalo.me/cdhc",
+                  external: true,
+                },
               ].map((item) => (
                 <li key={item.label}>
-                  <Link
-                    href={item.href}
-                    className="text-slate-400 hover:text-green-400 transition-colors text-sm flex items-center gap-2"
-                  >
-                    <span className="text-green-500">›</span>
-                    {item.label}
-                  </Link>
+                  {item.external ? (
+                    <a
+                      href={item.href}
+                      target={
+                        item.href.startsWith("tel:") ? undefined : "_blank"
+                      }
+                      rel={
+                        item.href.startsWith("tel:")
+                          ? undefined
+                          : "noopener noreferrer"
+                      }
+                      className="text-slate-400 hover:text-green-400 transition-colors text-sm flex items-center gap-2"
+                    >
+                      <span className="text-green-500">›</span>
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="text-slate-400 hover:text-green-400 transition-colors text-sm flex items-center gap-2"
+                    >
+                      <span className="text-green-500">›</span>
+                      {item.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

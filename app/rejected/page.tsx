@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import { API_URL } from "@/lib/config";
@@ -39,6 +40,7 @@ function getInitialUser(): User | null {
 }
 
 export default function RejectedPage() {
+  const router = useRouter();
   const [user] = useState<User | null>(getInitialUser);
 
   const handleLogout = async () => {
@@ -54,7 +56,8 @@ export default function RejectedPage() {
     // Clear local storage data
     localStorage.removeItem("user");
     localStorage.removeItem("profile");
-    window.location.href = "/login";
+    // Use Next.js router for SPA navigation instead of window.location
+    router.push("/login");
   };
 
   return (

@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 type TabId = "exchange" | "team" | "history";
 
 interface Tab {
@@ -20,7 +22,8 @@ const tabs: Tab[] = [
   { id: "history", icon: "📋", label: "Hồ sơ" },
 ];
 
-export function DashboardTabs({
+// PERFORMANCE: Memoize to prevent re-renders when parent state changes
+export const DashboardTabs = memo(function DashboardTabs({
   activeTab,
   onTabChange,
   variant = "mobile",
@@ -73,6 +76,6 @@ export function DashboardTabs({
       ))}
     </div>
   );
-}
+});
 
 export type { TabId };

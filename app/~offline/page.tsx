@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function OfflinePage() {
+  const router = useRouter();
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [retryCount, setRetryCount] = useState<number>(0);
   const reloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,7 +96,7 @@ export default function OfflinePage() {
 
           <button
             type="button"
-            onClick={() => window.history.back()}
+            onClick={() => router.back()}
             className="w-full px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
           >
             Quay lại trang trước
