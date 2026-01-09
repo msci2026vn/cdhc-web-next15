@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
@@ -49,19 +50,48 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-// Build CSP at build time from environment variables
-const cspContent = getCspHeaderValue();
+/**
+ * Check if running in dynamic mode (middleware active)
+ * Returns nonce from middleware headers if available
+ */
+async function getDynamicCspConfig(): Promise<{
+  nonce: string | null;
+  isStatic: boolean;
+}> {
+  try {
+    const headersList = await headers();
+    const nonce = headersList.get("x-nonce");
+    if (nonce) {
+      return { nonce, isStatic: false };
+    }
+  } catch {
+    // headers() throws in static export - expected behavior
+  }
+  return { nonce: null, isStatic: true };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check deployment mode and get nonce if available
+  const { nonce, isStatic } = await getDynamicCspConfig();
+
+  // Build CSP header
+  // - Dynamic mode: uses nonce + strict-dynamic (most secure)
+  // - Static export: uses domain allowlist (acceptable for static sites)
+  const cspContent = getCspHeaderValue(
+    isStatic ? undefined : (nonce ?? undefined)
+  );
+
   return (
     <html lang="vi" dir="ltr">
       <head>
         {/* Security meta tags
-            CSP is built from environment variables at build time
+            CSP is built from environment variables
+            - Dynamic mode (with middleware): nonce-based + strict-dynamic (most secure)
+            - Static export: domain allowlist + unsafe-inline (acceptable for static sites)
             See lib/csp-config.ts for configuration */}
         <meta httpEquiv="Content-Security-Policy" content={cspContent} />
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />

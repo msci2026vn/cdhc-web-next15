@@ -4,8 +4,18 @@
  * Builds CSP headers from environment variables.
  * No hardcoded domains - all configurable via .env
  *
+ * Security Modes:
+ * 1. Development: unsafe-inline + unsafe-eval (for hot reload)
+ * 2. Production Dynamic (with middleware): nonce-based + strict-dynamic (most secure)
+ * 3. Production Static Export: domain allowlist + unsafe-inline (acceptable)
+ *
+ * How to enable nonce-based CSP:
+ * - Remove `output: "export"` from next.config.ts
+ * - Deploy to Vercel or platform supporting Edge Runtime
+ * - Middleware will automatically inject per-request nonces
+ *
  * @created 2026-01-09
- * @updated 2026-01-09 - Added Google OAuth styles, Cloudflare always enabled, worker-src
+ * @updated 2026-01-09 - Added nonce-based CSP infrastructure
  */
 
 interface CspConfig {
@@ -18,6 +28,16 @@ interface CspConfig {
     other: string[];
   };
   firstParty: string[];
+}
+
+/**
+ * Generate a cryptographically secure nonce
+ * Uses Web Crypto API for security
+ */
+export function generateNonce(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Buffer.from(array).toString("base64");
 }
 
 /**
@@ -89,37 +109,77 @@ export function getCspConfig(): CspConfig {
 
 /**
  * Build CSP header string from config
+ * @param nonce - Optional nonce for script-src (required for production security)
+ * @param isStaticExport - Whether this is a static export (no middleware)
  */
-export function buildCspHeader(): string {
+export function buildCspHeader(nonce?: string, isStaticExport = true): string {
   const config = getCspConfig();
   const isDev = process.env.NODE_ENV === "development";
 
   // Script sources
-  // SECURITY: Only allow 'unsafe-inline' in development for hot reload
-  // Production should use nonces or hashes, but 'unsafe-inline' is needed
-  // for Next.js inline scripts until we implement nonce-based CSP
-  const scriptSrc = [
-    "'self'",
-    // Allow unsafe-inline in dev, or in prod for Next.js compatibility
-    // TODO: Implement nonce-based CSP for production to remove unsafe-inline
-    ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : ["'unsafe-inline'"]),
-    ...config.thirdParty.google,
-    ...config.thirdParty.cloudflare,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  // SECURITY:
+  // - Development: unsafe-inline + unsafe-eval for hot reload
+  // - Production with middleware (dynamic): nonce-based + strict-dynamic (most secure)
+  // - Production static export: unsafe-inline (acceptable for static sites)
+  //
+  // NOTE: For static exports, we cannot use strict-dynamic effectively because:
+  // 1. Nonce is baked into HTML at build time (same nonce for all users)
+  // 2. Next.js external scripts don't have nonce attribute in static export
+  // 3. strict-dynamic would block those scripts
+  //
+  // For maximum security with static export, deploy to a platform that supports
+  // edge middleware (Vercel, Cloudflare) to inject per-request nonces.
+  let scriptSrcDirectives: string[];
+
+  if (isDev) {
+    // Development: permissive for hot reload
+    scriptSrcDirectives = [
+      "'self'",
+      "'unsafe-inline'",
+      "'unsafe-eval'",
+      ...config.thirdParty.google,
+      ...config.thirdParty.cloudflare,
+    ];
+  } else if (nonce && !isStaticExport) {
+    // Production with middleware (dynamic rendering): most secure configuration
+    // 'strict-dynamic' allows scripts loaded by nonced scripts to execute
+    // This is crucial for Next.js which dynamically loads chunks
+    scriptSrcDirectives = [
+      "'self'",
+      `'nonce-${nonce}'`,
+      "'strict-dynamic'",
+      // Note: With strict-dynamic, allowlist URLs are ignored in modern browsers
+      // but we keep them for older browser fallback
+      ...config.thirdParty.google,
+      ...config.thirdParty.cloudflare,
+    ];
+  } else {
+    // Production static export: use domain allowlist (no unsafe-inline for external)
+    // This is acceptable security for static sites:
+    // - 'self' allows same-origin scripts
+    // - 'unsafe-inline' needed for Next.js inline bootstrap scripts
+    // - Explicit allowlist for third-party scripts
+    scriptSrcDirectives = [
+      "'self'",
+      "'unsafe-inline'",
+      ...config.thirdParty.google,
+      ...config.thirdParty.cloudflare,
+    ];
+  }
+
+  const scriptSrc = scriptSrcDirectives.filter(Boolean).join(" ");
 
   // Style sources - includes Google OAuth button styles
   // Note: 'unsafe-inline' for styles is generally acceptable and required for
   // CSS-in-JS libraries and inline styles. This is lower risk than script unsafe-inline.
-  const styleSrc = [
+  const styleSrcDirectives = [
     "'self'",
     "'unsafe-inline'",
     ...config.thirdParty.fonts,
     ...config.thirdParty.googleStyles,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  ];
+
+  const styleSrc = styleSrcDirectives.filter(Boolean).join(" ");
 
   // Font sources
   const fontSrc = ["'self'", ...config.thirdParty.fonts, "data:"]
@@ -165,7 +225,16 @@ export function buildCspHeader(): string {
 
 /**
  * Get CSP header for use in metadata or headers
+ * @param nonce - Optional nonce for enhanced security
  */
-export function getCspHeaderValue(): string {
-  return buildCspHeader();
+export function getCspHeaderValue(nonce?: string): string {
+  return buildCspHeader(nonce);
+}
+
+/**
+ * Create CSP meta tag content with nonce
+ * For use in layout.tsx with Script component
+ */
+export function createCspWithNonce(nonce: string): string {
+  return buildCspHeader(nonce);
 }

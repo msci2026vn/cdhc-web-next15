@@ -103,8 +103,8 @@ export function CommunityDashboardClient() {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    // Get Google avatar from SecureStorage (validated)
-    const userData = SecureStorage.getUser();
+    // Get Google avatar from SecureStorage (validated) - using sync version for immediate use
+    const userData = SecureStorage.getUserSync();
     if (userData?.picture) {
       setUserAvatar(userData.picture);
     }

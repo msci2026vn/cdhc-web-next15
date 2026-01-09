@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { RateLimitBlocked } from "@/components/auth/RateLimitBlocked";
 import { RateLimitWarning } from "@/components/auth/RateLimitWarning";
@@ -194,7 +194,10 @@ export default function LoginPage() {
   // State cho modal chon role
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [googleUser, setGoogleUser] = useState<GoogleUser | null>(null);
-  const [idToken, setIdToken] = useState<string | null>(null);
+  // SECURITY: Use useRef for idToken to avoid React state exposure in DevTools
+  // Token is cleared immediately after use and auto-expires after 60 seconds
+  const idTokenRef = useRef<string | null>(null);
+  const idTokenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [legacyData, setLegacyData] = useState<LegacyData | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -210,6 +213,42 @@ export default function LoginPage() {
 
   // ===== ABORT CONTROLLER REF =====
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // SECURITY: Clear idToken on unmount and set auto-expiry
+  const clearIdToken = useCallback(() => {
+    if (idTokenTimeoutRef.current) {
+      clearTimeout(idTokenTimeoutRef.current);
+      idTokenTimeoutRef.current = null;
+    }
+    idTokenRef.current = null;
+  }, []);
+
+  const setIdTokenWithExpiry = (token: string) => {
+    // Clear any existing timeout
+    if (idTokenTimeoutRef.current) {
+      clearTimeout(idTokenTimeoutRef.current);
+    }
+    // Set the token
+    idTokenRef.current = token;
+    // Auto-expire after 60 seconds for security
+    idTokenTimeoutRef.current = setTimeout(() => {
+      idTokenRef.current = null;
+      idTokenTimeoutRef.current = null;
+      // If user hasn't completed registration, show warning
+      if (showRoleModal && step !== 1) {
+        toast.warning("Phiên đăng ký đã hết hạn. Vui lòng đăng nhập lại.");
+        setShowRoleModal(false);
+        setStep(1);
+      }
+    }, 60000); // 60 seconds
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearIdToken();
+    };
+  }, [clearIdToken]);
 
   // Pre-check rate limit on mount (optional)
   useEffect(() => {
@@ -367,7 +406,8 @@ export default function LoginPage() {
 
       if (data.needRegister) {
         setGoogleUser(data.googleUser ?? null);
-        setIdToken(response.credential);
+        // SECURITY: Store token in ref with auto-expiry instead of state
+        setIdTokenWithExpiry(response.credential);
         setStep(1);
 
         // Check legacy user from old system
@@ -394,8 +434,8 @@ export default function LoginPage() {
 
         setShowRoleModal(true);
       } else if (data.user) {
-        // User data saved locally (tokens are in HttpOnly cookies)
-        SecureStorage.setUser(data.user);
+        // User data saved locally with HMAC signing (tokens are in HttpOnly cookies)
+        await SecureStorage.setUser(data.user);
 
         toast.success("Đăng nhập thành công!");
 
@@ -436,8 +476,12 @@ export default function LoginPage() {
   };
 
   const handleProfileSubmit = async (profileData: ProfileData) => {
-    if (!selectedRole || !idToken) {
-      toast.error("Thiếu thông tin đăng ký");
+    // SECURITY: Use ref instead of state for token
+    const currentToken = idTokenRef.current;
+    if (!selectedRole || !currentToken) {
+      toast.error("Thiếu thông tin đăng ký. Vui lòng đăng nhập lại.");
+      clearIdToken();
+      setShowRoleModal(false);
       return;
     }
 
@@ -456,7 +500,7 @@ export default function LoginPage() {
 
     try {
       const payload = {
-        idToken,
+        idToken: currentToken,
         role: selectedRole,
         isLegacyUser: !!legacyData,
         profile: profileData,
@@ -489,9 +533,15 @@ export default function LoginPage() {
         } else if (data.error?.code === "VALIDATION_ERROR") {
           toast.error(data.error.message || "Dữ liệu không hợp lệ");
         } else if (data.error?.code === "INVALID_PROFILE") {
-          // Show detailed validation errors
+          // SECURITY: Only show detailed errors in development mode
+          // In production, show generic message to prevent information disclosure
           const details = data.error?.details;
-          if (Array.isArray(details) && details.length > 0) {
+          if (
+            process.env.NODE_ENV === "development" &&
+            Array.isArray(details) &&
+            details.length > 0
+          ) {
+            // Development: show detailed errors for debugging
             const errorMessages = details
               .map(
                 (d) =>
@@ -499,8 +549,16 @@ export default function LoginPage() {
               )
               .join(", ");
             toast.error(`Lỗi validation: ${errorMessages}`);
+            logger.warn("[Security] Validation errors:", details);
           } else {
-            toast.error(data.error.message || "Thông tin không hợp lệ");
+            // Production: generic message to prevent field name disclosure
+            toast.error("Vui lòng kiểm tra lại thông tin đã nhập");
+            // Log details server-side only (via logger which respects NODE_ENV)
+            if (Array.isArray(details)) {
+              logger.warn(
+                "[Security] Validation failed - details hidden in production"
+              );
+            }
           }
         } else {
           toast.error(data.message || "Vui lòng kiểm tra lại thông tin");
@@ -520,9 +578,12 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // User/profile data saved locally (tokens are in HttpOnly cookies)
-        SecureStorage.setUser(data.user);
-        SecureStorage.setProfile(profileData);
+        // SECURITY: Clear idToken immediately after successful registration
+        clearIdToken();
+
+        // User/profile data saved locally with HMAC signing (tokens are in HttpOnly cookies)
+        await SecureStorage.setUser(data.user);
+        await SecureStorage.setProfile(profileData);
 
         // Clear legacy data from state
         setLegacyData(null);
@@ -548,10 +609,14 @@ export default function LoginPage() {
   };
 
   const handleCloseModal = () => {
+    // SECURITY: Clear token when modal is closed
+    clearIdToken();
     setShowRoleModal(false);
     setSelectedRole(null);
     setStep(1);
     setError(null);
+    setGoogleUser(null);
+    setLegacyData(null);
   };
 
   const handleUnblock = () => {
