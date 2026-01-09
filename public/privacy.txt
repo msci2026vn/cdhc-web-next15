@@ -1,0 +1,59 @@
+CHINH SACH BAO MAT - CON DUONG HUU CO (CDHC)
+=============================================
+
+Cap nhat lan cuoi: 2026-01-09
+
+1. THONG TIN THU THAP
+---------------------
+Chung toi thu thap cac thong tin sau:
+- Thong tin ca nhan: Ho ten, email, so dien thoai
+- Thong tin tai khoan: Google OAuth (email, ten, anh dai dien)
+- Thong tin su dung: Cookies, du lieu phan tich
+
+2. SU DUNG THONG TIN
+--------------------
+Thong tin cua ban duoc su dung de:
+- Cung cap va cai thien dich vu
+- Xac thuc nguoi dung
+- Gui thong bao quan trong
+- Phan tich va cai thien trai nghiem nguoi dung
+
+3. BAO VE THONG TIN
+-------------------
+Chung toi su dung cac bien phap bao mat:
+- Ma hoa SSL/TLS cho tat ca ket noi
+- Luu tru an toan voi HttpOnly cookies
+- Kiem soat truy cap nghiem ngat
+- Xac thuc token JWT
+
+4. CHIA SE THONG TIN
+--------------------
+Chung toi KHONG ban hoac chia se thong tin ca nhan cua ban cho ben thu ba,
+ngoai tru:
+- Khi co yeu cau phap ly
+- De bao ve quyen loi cua CDHC
+- Voi su dong y cua ban
+
+5. QUYEN CUA BAN
+----------------
+Ban co quyen:
+- Truy cap thong tin ca nhan
+- Chinh sua thong tin
+- Xoa tai khoan
+- Tu choi nhan thong bao marketing
+
+6. COOKIES
+----------
+Website su dung cookies de:
+- Duy tri phien dang nhap
+- Nho tuy chon cua ban
+- Phan tich luong truy cap
+
+7. LIEN HE
+----------
+Neu co thac mac ve chinh sach bao mat:
+- Email: support@cdhc.vn
+- Website: https://cdhc.vn
+
+CDHC - Con Duong Huu Co
+"Dong hanh cung nong dan Viet Nam"

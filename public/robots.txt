@@ -1,0 +1,16 @@
+# robots.txt for CDHC - Con Duong Huu Co
+# https://cdhc.vn
+
+User-agent: *
+Allow: /
+
+# Disallow admin/private areas
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://cdhc.vn/sitemap.xml
+
+# Crawl delay (optional - be nice to servers)
+Crawl-delay: 1

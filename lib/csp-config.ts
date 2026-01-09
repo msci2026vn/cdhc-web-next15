@@ -5,12 +5,14 @@
  * No hardcoded domains - all configurable via .env
  *
  * @created 2026-01-09
+ * @updated 2026-01-09 - Added Google OAuth styles, Cloudflare always enabled, worker-src
  */
 
 interface CspConfig {
   allowEval: boolean;
   thirdParty: {
     google: string[];
+    googleStyles: string[]; // For Google OAuth button styles
     cloudflare: string[];
     fonts: string[];
     other: string[];
@@ -35,8 +37,6 @@ function safeGetOrigin(url: string): string | null {
 export function getCspConfig(): CspConfig {
   const isDev = process.env.NODE_ENV === "development";
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-  const enableCloudflare =
-    process.env.NEXT_PUBLIC_ENABLE_CLOUDFLARE_ANALYTICS === "true";
 
   // Extract API domain safely
   const apiDomain = safeGetOrigin(apiUrl);
@@ -63,16 +63,18 @@ export function getCspConfig(): CspConfig {
     allowEval: isDev,
 
     thirdParty: {
-      // Google OAuth & APIs
+      // Google OAuth & APIs (script, frame, connect)
       google: ["https://accounts.google.com", "https://apis.google.com"],
 
-      // Cloudflare Analytics (conditional)
-      cloudflare: enableCloudflare
-        ? [
-            "https://static.cloudflareinsights.com",
-            "https://cloudflareinsights.com",
-          ]
-        : [],
+      // Google OAuth button styles (style-src)
+      googleStyles: ["https://accounts.google.com"],
+
+      // Cloudflare Analytics - ALWAYS enabled to prevent CSP violations
+      // Even if not using analytics, CSP should not block if page includes script
+      cloudflare: [
+        "https://static.cloudflareinsights.com",
+        "https://cloudflareinsights.com",
+      ],
 
       // Google Fonts
       fonts: ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
@@ -102,13 +104,18 @@ export function buildCspHeader(): string {
     .filter(Boolean)
     .join(" ");
 
-  // Style sources
-  const styleSrc = ["'self'", "'unsafe-inline'", ...config.thirdParty.fonts]
+  // Style sources - includes Google OAuth button styles
+  const styleSrc = [
+    "'self'",
+    "'unsafe-inline'",
+    ...config.thirdParty.fonts,
+    ...config.thirdParty.googleStyles,
+  ]
     .filter(Boolean)
     .join(" ");
 
   // Font sources
-  const fontSrc = ["'self'", ...config.thirdParty.fonts]
+  const fontSrc = ["'self'", ...config.thirdParty.fonts, "data:"]
     .filter(Boolean)
     .join(" ");
 
@@ -128,6 +135,9 @@ export function buildCspHeader(): string {
     .filter(Boolean)
     .join(" ");
 
+  // Worker sources (service worker)
+  const workerSrc = ["'self'", "blob:"].join(" ");
+
   // Build full CSP header
   const directives = [
     `default-src 'self'`,
@@ -137,6 +147,7 @@ export function buildCspHeader(): string {
     `img-src 'self' data: https: blob:`,
     `connect-src ${connectSrc}`,
     `frame-src ${frameSrc}`,
+    `worker-src ${workerSrc}`,
     `object-src 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,
