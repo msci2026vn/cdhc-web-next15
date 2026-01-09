@@ -84,6 +84,9 @@ export function CommunityDashboardClient() {
   const handleTabTeam = useCallback(() => setActiveTab("team"), []);
   const handleTabHistory = useCallback(() => setActiveTab("history"), []);
 
+  // ===== BACK TO HOME HANDLER =====
+  const handleBackToHome = useCallback(() => router.push("/"), [router]);
+
   // ===== DEBOUNCED SEARCH (300ms delay to avoid filtering on every keystroke) =====
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -331,6 +334,27 @@ export function CommunityDashboardClient() {
         <div className="max-w-lg mx-auto space-y-6">
           {/* DASHBOARD HEADER - MOBILE (moved to top) */}
           <div className="text-white">
+            <button
+              type="button"
+              onClick={handleBackToHome}
+              className="flex items-center gap-2 text-white/80 hover:text-white mb-3 transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <span className="text-sm font-medium">Quay lại trang chủ</span>
+            </button>
             <h1 className="text-2xl font-bold">Dashboard Cộng đồng</h1>
             <p className="text-white/80">
               Chào mừng {profile?.fullName || "bạn"} 👋
@@ -777,6 +801,27 @@ export function CommunityDashboardClient() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
           <div className="absolute inset-0 flex items-center">
             <div className="container mx-auto px-8 max-w-7xl">
+              <button
+                type="button"
+                onClick={handleBackToHome}
+                className="flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                <span className="text-sm font-medium">Quay lại trang chủ</span>
+              </button>
               <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
                 Dashboard Cộng đồng
               </h1>
