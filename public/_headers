@@ -1,5 +1,6 @@
 /*
   Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cross-Origin-Embedder-Policy: unsafe-none
 
 /sw.js
   Content-Type: application/javascript; charset=utf-8
