@@ -1,5 +1,7 @@
 "use client";
 
+import { type ChangeEvent, memo, useCallback } from "react";
+
 interface Option {
   value: string;
   label: string;
@@ -17,7 +19,7 @@ interface SelectWithOtherProps {
   error?: string;
 }
 
-export function SelectWithOther({
+export const SelectWithOther = memo(function SelectWithOther({
   label,
   name,
   value,
@@ -31,13 +33,25 @@ export function SelectWithOther({
   const hasOtherOption = options.some((opt) => opt.value === "other");
   const showOtherInput = value === "other";
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newValue = e.target.value;
-    onChange(newValue);
-    if (newValue !== "other") {
-      onOtherChange("");
-    }
-  };
+  // Memoize select change handler
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => {
+      const newValue = e.target.value;
+      onChange(newValue);
+      if (newValue !== "other") {
+        onOtherChange("");
+      }
+    },
+    [onChange, onOtherChange]
+  );
+
+  // Memoize other input handler
+  const handleOtherChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      onOtherChange(e.target.value);
+    },
+    [onOtherChange]
+  );
 
   return (
     <div className="mb-4">
@@ -91,7 +105,7 @@ export function SelectWithOther({
             id={`${name}-other`}
             type="text"
             value={otherValue}
-            onChange={(e) => onOtherChange(e.target.value)}
+            onChange={handleOtherChange}
             placeholder="Nhập thông tin khác..."
             className="mt-2 w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-colors focus:outline-none focus:border-green-500"
           />
@@ -100,4 +114,4 @@ export function SelectWithOther({
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
   );
-}
+});

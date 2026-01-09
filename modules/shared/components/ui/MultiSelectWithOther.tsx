@@ -1,5 +1,7 @@
 "use client";
 
+import { type ChangeEvent, memo, useCallback } from "react";
+
 interface Option {
   value: string;
   label: string;
@@ -18,7 +20,7 @@ interface MultiSelectWithOtherProps {
   error?: string;
 }
 
-export function MultiSelectWithOther({
+export const MultiSelectWithOther = memo(function MultiSelectWithOther({
   label,
   name,
   value,
@@ -33,19 +35,34 @@ export function MultiSelectWithOther({
   const hasOtherOption = options.some((opt) => opt.value === "other");
   const showOtherInput = value.includes("other");
 
-  const handleToggle = (optValue: string) => {
-    if (value.includes(optValue)) {
-      onChange(value.filter((v) => v !== optValue));
-      if (optValue === "other") {
-        onOtherChange("");
+  // Memoize toggle handler - uses data attribute to avoid inline closure
+  const handleToggle = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const optValue = e.currentTarget.dataset.value;
+      if (!optValue) return;
+
+      if (value.includes(optValue)) {
+        onChange(value.filter((v) => v !== optValue));
+        if (optValue === "other") {
+          onOtherChange("");
+        }
+      } else {
+        if (maxSelect && value.length >= maxSelect) {
+          return;
+        }
+        onChange([...value, optValue]);
       }
-    } else {
-      if (maxSelect && value.length >= maxSelect) {
-        return;
-      }
-      onChange([...value, optValue]);
-    }
-  };
+    },
+    [value, onChange, onOtherChange, maxSelect]
+  );
+
+  // Memoize other input handler
+  const handleOtherChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      onOtherChange(e.target.value);
+    },
+    [onOtherChange]
+  );
 
   const otherInputId = `${name}-other`;
 
@@ -70,7 +87,8 @@ export function MultiSelectWithOther({
             <button
               key={opt.value}
               type="button"
-              onClick={() => handleToggle(opt.value)}
+              data-value={opt.value}
+              onClick={handleToggle}
               disabled={isDisabled}
               aria-pressed={isSelected}
               className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
@@ -95,7 +113,7 @@ export function MultiSelectWithOther({
             id={otherInputId}
             type="text"
             value={otherValue}
-            onChange={(e) => onOtherChange(e.target.value)}
+            onChange={handleOtherChange}
             placeholder="Nhập thông tin khác..."
             className="mt-2 w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-colors focus:outline-none focus:border-green-500"
           />
@@ -104,4 +122,4 @@ export function MultiSelectWithOther({
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </fieldset>
   );
-}
+});

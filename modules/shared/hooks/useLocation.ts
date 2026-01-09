@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { logger } from "@/lib/logger";
 
 interface Province {
@@ -37,54 +37,56 @@ export function useLocation(initialProvince = "", initialWard = "") {
   const [selectedWardCode, setSelectedWardCode] = useState(initialWard);
   const [loading, setLoading] = useState(true);
 
-  // Abort controller refs for cleanup
-  const provinceAbortRef = useRef<AbortController | null>(null);
-  const wardAbortRef = useRef<AbortController | null>(null);
+  // Single abort controller ref for cleanup
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Load tinh tu /public/tinh.json
+  // Load both provinces and wards in parallel with Promise.all
   useEffect(() => {
     const controller = new AbortController();
-    provinceAbortRef.current = controller;
+    abortControllerRef.current = controller;
+    const signal = controller.signal;
 
-    fetch("/tinh.json", { signal: controller.signal })
-      .then((res) => res.json())
-      .then((data: Record<string, Province>) => {
-        const provinceList = Object.values(data);
+    async function loadLocationData() {
+      try {
+        // Fetch both files in parallel for better performance
+        const [provincesRes, wardsRes] = await Promise.all([
+          fetch("/tinh.json", { signal }),
+          fetch("/xa.json", { signal }),
+        ]);
+
+        // Check if aborted during fetch
+        if (signal.aborted) return;
+
+        const [provincesData, wardsData] = await Promise.all([
+          provincesRes.json() as Promise<Record<string, Province>>,
+          wardsRes.json() as Promise<Record<string, Ward>>,
+        ]);
+
+        // Check if aborted during JSON parsing
+        if (signal.aborted) return;
+
+        // Process provinces
+        const provinceList = Object.values(provincesData);
         provinceList.sort((a, b) => a.name.localeCompare(b.name, "vi"));
+
+        // Process wards
+        const wardList = Object.values(wardsData);
+
+        // Update state
         setProvinces(provinceList);
-      })
-      .catch((err) => {
-        // Ignore abort errors
-        if (err instanceof Error && err.name === "AbortError") {
-          return;
-        }
-        logger.error(err);
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, []);
-
-  // Load xa tu /public/xa.json
-  useEffect(() => {
-    const controller = new AbortController();
-    wardAbortRef.current = controller;
-
-    fetch("/xa.json", { signal: controller.signal })
-      .then((res) => res.json())
-      .then((data: Record<string, Ward>) => {
-        const wardList = Object.values(data);
         setAllWards(wardList);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         // Ignore abort errors
         if (err instanceof Error && err.name === "AbortError") {
           return;
         }
-        logger.error(err);
-      });
+        logger.error("[useLocation] Failed to load location data:", err);
+        setLoading(false);
+      }
+    }
+
+    loadLocationData();
 
     return () => {
       controller.abort();
@@ -110,19 +112,22 @@ export function useLocation(initialProvince = "", initialWard = "") {
     [filteredWards, selectedWardCode]
   );
 
-  // Set province va reset ward
-  const setProvince = (code: string) => {
+  // Set province va reset ward - memoized
+  const setProvince = useCallback((code: string) => {
     setSelectedProvinceCode(code);
     setSelectedWardCode("");
-  };
+  }, []);
 
   // Location data de luu vao profile
-  const locationData: LocationData = {
-    province_code: selectedProvinceCode,
-    province_name: selectedProvince?.name ?? "",
-    ward_code: selectedWardCode,
-    ward_name: selectedWard?.name ?? "",
-  };
+  const locationData: LocationData = useMemo(
+    () => ({
+      province_code: selectedProvinceCode,
+      province_name: selectedProvince?.name ?? "",
+      ward_code: selectedWardCode,
+      ward_name: selectedWard?.name ?? "",
+    }),
+    [selectedProvinceCode, selectedProvince, selectedWardCode, selectedWard]
+  );
 
   return {
     // Data

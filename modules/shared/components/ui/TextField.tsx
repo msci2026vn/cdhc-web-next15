@@ -1,5 +1,7 @@
 "use client";
 
+import { type ChangeEvent, memo, useCallback } from "react";
+
 interface TextFieldProps {
   label: string;
   name: string;
@@ -14,7 +16,7 @@ interface TextFieldProps {
   helperText?: string;
 }
 
-export function TextField({
+export const TextField = memo(function TextField({
   label,
   name,
   value,
@@ -27,6 +29,14 @@ export function TextField({
   className = "",
   helperText,
 }: TextFieldProps) {
+  // Memoize onChange handler to prevent re-renders
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      onChange(e.target.value);
+    },
+    [onChange]
+  );
+
   return (
     <div className="mb-4">
       <label
@@ -41,7 +51,7 @@ export function TextField({
         id={name}
         name={name}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleChange}
         placeholder={placeholder}
         disabled={disabled}
         className={`w-full px-4 py-3 border-2 rounded-xl transition-colors focus:outline-none focus:border-green-500 ${
@@ -54,4 +64,4 @@ export function TextField({
       )}
     </div>
   );
-}
+});

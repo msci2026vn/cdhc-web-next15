@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { RateLimitBlocked } from "@/components/auth/RateLimitBlocked";
 import { RateLimitWarning } from "@/components/auth/RateLimitWarning";
+import { FormErrorBoundary } from "@/components/FormErrorBoundary";
 import { checkRateLimit, handleRateLimitResponse } from "@/lib/api/rate-limit";
 import { API_URL } from "@/lib/config";
 import { logger } from "@/lib/logger";
@@ -658,26 +659,31 @@ export default function LoginPage() {
     // Dynamic props are hard to type strictly without intersection types
     const formProps = { ...baseProps, ...legacyProps };
 
-    switch (selectedRole) {
-      case "farmer":
-        return <FarmerForm {...formProps} />;
-      case "community":
-        return <CommunityForm {...formProps} />;
-      case "business":
-        return <BusinessForm {...formProps} />;
-      case "coop":
-        return <CoopForm {...formProps} />;
-      case "shop":
-        return <ShopForm {...formProps} />;
-      case "expert":
-        return <ExpertForm {...formProps} />;
-      case "kol":
-        return <KolForm {...formProps} />;
-      case "koc":
-        return <KocForm {...formProps} />;
-      default:
-        return null;
-    }
+    // Wrap dynamic forms in ErrorBoundary to handle chunk loading failures
+    const FormComponent = (() => {
+      switch (selectedRole) {
+        case "farmer":
+          return <FarmerForm {...formProps} />;
+        case "community":
+          return <CommunityForm {...formProps} />;
+        case "business":
+          return <BusinessForm {...formProps} />;
+        case "coop":
+          return <CoopForm {...formProps} />;
+        case "shop":
+          return <ShopForm {...formProps} />;
+        case "expert":
+          return <ExpertForm {...formProps} />;
+        case "kol":
+          return <KolForm {...formProps} />;
+        case "koc":
+          return <KocForm {...formProps} />;
+        default:
+          return null;
+      }
+    })();
+
+    return <FormErrorBoundary>{FormComponent}</FormErrorBoundary>;
   };
 
   return (

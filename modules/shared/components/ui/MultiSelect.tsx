@@ -1,5 +1,7 @@
 "use client";
 
+import { memo, useCallback } from "react";
+
 interface Option {
   value: string;
   label: string;
@@ -16,7 +18,7 @@ interface MultiSelectProps {
   error?: string;
 }
 
-export function MultiSelect({
+export const MultiSelect = memo(function MultiSelect({
   label,
   name,
   value,
@@ -26,16 +28,23 @@ export function MultiSelect({
   maxSelect,
   error,
 }: MultiSelectProps) {
-  const handleToggle = (optValue: string) => {
-    if (value.includes(optValue)) {
-      onChange(value.filter((v) => v !== optValue));
-    } else {
-      if (maxSelect && value.length >= maxSelect) {
-        return;
+  // Memoize toggle handler - uses data attribute to avoid inline closure
+  const handleToggle = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const optValue = e.currentTarget.dataset.value;
+      if (!optValue) return;
+
+      if (value.includes(optValue)) {
+        onChange(value.filter((v) => v !== optValue));
+      } else {
+        if (maxSelect && value.length >= maxSelect) {
+          return;
+        }
+        onChange([...value, optValue]);
       }
-      onChange([...value, optValue]);
-    }
-  };
+    },
+    [value, onChange, maxSelect]
+  );
 
   return (
     <fieldset className="mb-4 border-0 p-0 m-0">
@@ -58,7 +67,8 @@ export function MultiSelect({
             <button
               key={opt.value}
               type="button"
-              onClick={() => handleToggle(opt.value)}
+              data-value={opt.value}
+              onClick={handleToggle}
               disabled={isDisabled}
               aria-pressed={isSelected}
               className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
@@ -77,4 +87,4 @@ export function MultiSelect({
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </fieldset>
   );
-}
+});
