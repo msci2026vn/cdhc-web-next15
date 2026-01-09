@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UpdateNotification } from "@/components/UpdateNotification";
+import { getCspHeaderValue } from "@/lib/csp-config";
 import { Providers } from "./providers";
 
 const APP_NAME = "Con Đường Hữu Cơ";
@@ -47,6 +48,9 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
+// Build CSP at build time from environment variables
+const cspContent = getCspHeaderValue();
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,12 +60,9 @@ export default function RootLayout({
     <html lang="vi" dir="ltr">
       <head>
         {/* Security meta tags
-            Note: 'unsafe-inline' required for Next.js inline styles and scripts
-            'unsafe-eval' removed for better security - test if Google OAuth still works */}
-        <meta
-          httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.cdhc.vn https://accounts.google.com https://provinces.open-api.vn; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self';"
-        />
+            CSP is built from environment variables at build time
+            See lib/csp-config.ts for configuration */}
+        <meta httpEquiv="Content-Security-Policy" content={cspContent} />
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />
 
