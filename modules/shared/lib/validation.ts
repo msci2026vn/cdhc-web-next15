@@ -109,12 +109,14 @@ export const ProfileApiResponseSchema = z.object({
 
 /**
  * Points conversion history item
+ * Note: PostgreSQL numeric/decimal returns string to preserve precision,
+ * so we use z.coerce.number() to accept both string and number inputs
  */
 export const ConversionHistoryItemSchema = z.object({
   id: z.string(),
   fromType: z.enum(["ogn", "tor"]),
-  fromAmount: z.number(),
-  toAmount: z.number(),
+  fromAmount: z.coerce.number(), // Backend returns string from Decimal type
+  toAmount: z.coerce.number(), // Backend returns string from Decimal type
   status: z.string().optional().default("success"),
   createdAt: z.string(),
 });
