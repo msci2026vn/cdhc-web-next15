@@ -85,27 +85,32 @@ export function UpdateNotification() {
     );
 
     // Check if there's already a waiting SW
-    workbox.register().then((registration) => {
-      // Check if still mounted before setting state/interval
-      if (!isMountedRef.current) return;
+    workbox
+      .register()
+      .then((registration) => {
+        // Check if still mounted before setting state/interval
+        if (!isMountedRef.current) return;
 
-      if (registration?.waiting) {
-        showUpdateNotification(registration.waiting);
-      }
+        if (registration?.waiting) {
+          showUpdateNotification(registration.waiting);
+        }
 
-      // Check periodically for updates (every 5 minutes - reasonable for production)
-      // Only set interval if still mounted
-      if (isMountedRef.current) {
-        checkIntervalRef.current = setInterval(
-          () => {
-            registration?.update().catch(() => {
-              // Ignore errors
-            });
-          },
-          5 * 60 * 1000
-        ); // 5 minutes
-      }
-    });
+        // Check periodically for updates (every 5 minutes - reasonable for production)
+        // Only set interval if still mounted
+        if (isMountedRef.current) {
+          checkIntervalRef.current = setInterval(
+            () => {
+              registration?.update().catch(() => {
+                // Ignore errors
+              });
+            },
+            5 * 60 * 1000
+          ); // 5 minutes
+        }
+      })
+      .catch(() => {
+        // Service worker registration failed - ignore in production
+      });
 
     // Cleanup function - properly removes all listeners and interval
     return () => {
