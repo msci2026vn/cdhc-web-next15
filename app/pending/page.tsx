@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
+import { API_URL } from "@/lib/config";
+import { logger } from "@/lib/logger";
 
 interface User {
   name: string;
@@ -522,7 +524,7 @@ function getInitialUser(): User | null {
     if (result.success) {
       return result.data as User;
     }
-    console.warn("[Security] Invalid user data in localStorage");
+    logger.warn("[Security] Invalid user data in localStorage");
     return null;
   } catch {
     return null;
@@ -539,7 +541,7 @@ function getInitialProfile(): Profile | null {
     if (result.success) {
       return result.data as Profile;
     }
-    console.warn("[Security] Invalid profile data in localStorage");
+    logger.warn("[Security] Invalid profile data in localStorage");
     return null;
   } catch {
     return null;
@@ -553,13 +555,10 @@ export default function PendingPage() {
   const handleLogout = async () => {
     try {
       // Call backend logout to clear HttpOnly cookies
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn"}/api/auth/logout`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
     } catch {
       // Continue logout even if API fails
     }

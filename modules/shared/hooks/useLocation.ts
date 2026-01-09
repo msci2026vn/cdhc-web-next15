@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { logger } from "@/lib/logger";
 
 interface Province {
   code: string;
@@ -57,7 +58,7 @@ export function useLocation(initialProvince = "", initialWard = "") {
         if (err instanceof Error && err.name === "AbortError") {
           return;
         }
-        console.error(err);
+        logger.error(err);
       });
 
     return () => {
@@ -82,7 +83,7 @@ export function useLocation(initialProvince = "", initialWard = "") {
         if (err instanceof Error && err.name === "AbortError") {
           return;
         }
-        console.error(err);
+        logger.error(err);
       });
 
     return () => {

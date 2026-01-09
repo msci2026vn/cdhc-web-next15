@@ -3,6 +3,8 @@
  * Maps province/ward codes to human-readable names
  */
 
+import { logger } from "@/lib/logger";
+
 interface ProvinceData {
   code: string;
   name: string;
@@ -35,7 +37,7 @@ async function loadProvinces(): Promise<Record<string, ProvinceData>> {
   try {
     const response = await fetch("/tinh.json");
     if (!response.ok) {
-      console.error(
+      logger.error(
         `[LocationMapper] Failed to load provinces: ${response.status} ${response.statusText}`
       );
       return {};
@@ -44,7 +46,7 @@ async function loadProvinces(): Promise<Record<string, ProvinceData>> {
     provincesCache = data;
     return data;
   } catch (error) {
-    console.error("[LocationMapper] Error loading provinces:", error);
+    logger.error("[LocationMapper] Error loading provinces:", error);
     return {};
   }
 }
@@ -58,7 +60,7 @@ async function loadWards(): Promise<Record<string, WardData>> {
   try {
     const response = await fetch("/xa.json");
     if (!response.ok) {
-      console.error(
+      logger.error(
         `[LocationMapper] Failed to load wards: ${response.status} ${response.statusText}`
       );
       return {};
@@ -67,7 +69,7 @@ async function loadWards(): Promise<Record<string, WardData>> {
     wardsCache = data;
     return data;
   } catch (error) {
-    console.error("[LocationMapper] Error loading wards:", error);
+    logger.error("[LocationMapper] Error loading wards:", error);
     return {};
   }
 }

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { MathCaptcha, TextField } from "@/modules/shared/components/ui";
 import { lookupLegacyAccount } from "@/modules/shared/lib/api";
 import type { LegacyAccount } from "@/modules/shared/types";
@@ -128,7 +129,7 @@ export default function LegacyLookupPage() {
         }
       }
     } catch (err) {
-      console.error("Lookup error:", err);
+      logger.error("Lookup error:", err);
       setError("Không thể kết nối đến server. Vui lòng thử lại sau.");
     } finally {
       setLoading(false);

@@ -7,6 +7,8 @@
  * @created 2026-01-06
  */
 
+import { logger } from "@/lib/logger";
+
 // ============================================================
 // TYPES
 // ============================================================
@@ -68,7 +70,7 @@ export async function loadProvinces(): Promise<Province[]> {
       return provinceList;
     })
     .catch((err) => {
-      console.error("Failed to load provinces:", err);
+      logger.error("Failed to load provinces:", err);
       provincesPromise = null; // Allow retry on error
       return [];
     });
@@ -100,7 +102,7 @@ export async function loadWards(): Promise<Ward[]> {
       return wardList;
     })
     .catch((err) => {
-      console.error("Failed to load wards:", err);
+      logger.error("Failed to load wards:", err);
       wardsPromise = null; // Allow retry on error
       return [];
     });

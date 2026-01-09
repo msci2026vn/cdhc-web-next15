@@ -15,6 +15,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { API_URL } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import { parsePointsHistoryResponse } from "@/modules/shared";
 
 // ============================================================
@@ -47,7 +49,6 @@ interface Props {
 // ============================================================
 // CONSTANTS
 // ============================================================
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
 
 // Conversion rates (1:1 for now, can be changed)
 const CONVERSION_RATES = {
@@ -473,7 +474,7 @@ export function PointsConversionSection({
       }
       const message =
         err instanceof Error ? err.message : "Không thể tải lịch sử";
-      console.error("Failed to load history:", err);
+      logger.error("Failed to load history:", err);
       setHistoryError(message);
       setHistory([]);
     } finally {

@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { RateLimitBlocked } from "@/components/auth/RateLimitBlocked";
 import { RateLimitWarning } from "@/components/auth/RateLimitWarning";
 import { checkRateLimit, handleRateLimitResponse } from "@/lib/api/rate-limit";
+import { API_URL } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import type {
   BusinessFormData,
   CommunityFormData,
@@ -150,8 +152,6 @@ interface GoogleAuthResponse {
     message: string;
   };
 }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
 
 const ROLE_REDIRECTS: Record<Role, string> = {
   farmer: "/farmer/dashboard",
@@ -410,7 +410,7 @@ export default function LoginPage() {
         toast.error("Phản hồi từ server không hợp lệ");
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       toast.error("Lỗi kết nối server");
     } finally {
       setIsLoading(false);
@@ -539,7 +539,7 @@ export default function LoginPage() {
         }
       }
     } catch (err: unknown) {
-      console.error("Registration error:", err);
+      logger.error("Registration error:", err);
       const message = err instanceof Error ? err.message : "Lỗi kết nối server";
       toast.error(message);
     } finally {

@@ -196,13 +196,19 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data.json();
   } catch {
-    console.warn("[SW] Invalid push data JSON");
+    // Only log in development
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[SW] Invalid push data JSON");
+    }
     return;
   }
 
   // Validate push data structure
   if (!isValidPushData(data)) {
-    console.warn("[SW] Invalid push data structure");
+    // Only log in development
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[SW] Invalid push data structure");
+    }
     return;
   }
 

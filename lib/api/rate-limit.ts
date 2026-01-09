@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
+import { API_URL } from "@/lib/config";
 
 /**
  * Check if user/IP is rate limited

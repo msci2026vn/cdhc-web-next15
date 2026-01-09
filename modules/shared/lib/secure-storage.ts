@@ -16,6 +16,7 @@
  */
 
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 import { type UserData, UserDataSchema } from "./validation";
 
 // ============================================================
@@ -78,7 +79,7 @@ export const SecureStorage = {
     // Validate against schema before saving
     const result = UserDataSchema.safeParse(user);
     if (!result.success) {
-      console.warn(
+      logger.warn(
         "[SecureStorage] Invalid user data format:",
         result.error.issues
       );
@@ -88,7 +89,7 @@ export const SecureStorage = {
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(result.data));
       return true;
     } catch (e) {
-      console.error("[SecureStorage] Failed to save user:", e);
+      logger.error("[SecureStorage] Failed to save user:", e);
       return false;
     }
   },
@@ -105,7 +106,7 @@ export const SecureStorage = {
       const result = UserDataSchema.safeParse(parsed);
 
       if (!result.success) {
-        console.warn(
+        logger.warn(
           "[SecureStorage] Stored user data invalid:",
           result.error.issues
         );
@@ -115,7 +116,7 @@ export const SecureStorage = {
 
       return result.data;
     } catch (e) {
-      console.error("[SecureStorage] Failed to parse user:", e);
+      logger.error("[SecureStorage] Failed to parse user:", e);
       this.clearAuth();
       return null;
     }
@@ -128,7 +129,7 @@ export const SecureStorage = {
     // Validate against schema before saving
     const result = ProfileDataSchema.safeParse(profile);
     if (!result.success) {
-      console.warn(
+      logger.warn(
         "[SecureStorage] Invalid profile data format:",
         result.error.issues
       );
@@ -138,7 +139,7 @@ export const SecureStorage = {
       localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(result.data));
       return true;
     } catch (e) {
-      console.error("[SecureStorage] Failed to save profile:", e);
+      logger.error("[SecureStorage] Failed to save profile:", e);
       return false;
     }
   },
@@ -155,7 +156,7 @@ export const SecureStorage = {
       const result = ProfileDataSchema.safeParse(parsed);
 
       if (!result.success) {
-        console.warn(
+        logger.warn(
           "[SecureStorage] Stored profile data invalid:",
           result.error.issues
         );
@@ -165,7 +166,7 @@ export const SecureStorage = {
 
       return result.data as T;
     } catch (e) {
-      console.error("[SecureStorage] Failed to parse profile:", e);
+      logger.error("[SecureStorage] Failed to parse profile:", e);
       return null;
     }
   },
@@ -179,7 +180,7 @@ export const SecureStorage = {
       localStorage.removeItem(STORAGE_KEYS.USER);
       localStorage.removeItem(STORAGE_KEYS.PROFILE);
     } catch (e) {
-      console.error("[SecureStorage] Failed to clear auth:", e);
+      logger.error("[SecureStorage] Failed to clear auth:", e);
     }
   },
 

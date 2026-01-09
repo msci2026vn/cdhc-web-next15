@@ -1,12 +1,11 @@
 // modules/shared/lib/api.ts
 
+import { API_URL } from "@/lib/config";
 import type {
   CaptchaChallenge,
   LegacyLookupRequest,
   LegacyLookupResponse,
 } from "../types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
 
 // Default timeout for API calls (30 seconds)
 const DEFAULT_TIMEOUT = 30000;

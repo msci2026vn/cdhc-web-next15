@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 // ============================================================
 // USER & AUTH SCHEMAS
@@ -199,10 +200,10 @@ export function parseUserData(jsonString: string): UserData | null {
     if (result.success) {
       return result.data;
     }
-    console.warn("Invalid user data format:", result.error.issues);
+    logger.warn("Invalid user data format:", result.error.issues);
     return null;
   } catch {
-    console.warn("Failed to parse user data JSON");
+    logger.warn("Failed to parse user data JSON");
     return null;
   }
 }
@@ -222,7 +223,7 @@ export function parseProfileResponse(data: unknown): {
       profile: result.data.profile,
     };
   }
-  console.warn("Invalid profile response format:", result.error.issues);
+  logger.warn("Invalid profile response format:", result.error.issues);
   return {
     success: false,
     error: "Invalid response format",
@@ -246,7 +247,7 @@ export function parsePointsHistoryResponse(data: unknown): {
       pagination: result.data.pagination,
     };
   }
-  console.warn("Invalid points history response:", result.error.issues);
+  logger.warn("Invalid points history response:", result.error.issues);
   return {
     success: false,
     conversions: [],

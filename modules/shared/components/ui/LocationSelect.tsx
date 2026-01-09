@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { logger } from "@/lib/logger";
 import {
   getCachedProvinces,
   getCachedWards,
@@ -62,7 +63,7 @@ export function LocationSelect({
         }
       })
       .catch((err) => {
-        console.error("Failed to load location data:", err);
+        logger.error("Failed to load location data:", err);
         if (mounted) {
           setLoading(false);
         }

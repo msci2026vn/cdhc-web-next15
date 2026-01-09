@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { API_URL } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import {
   getInterestLabels,
   getProvinceName,
@@ -14,8 +16,6 @@ import {
 // Import ProfileData type from validation schema
 import type { ProfileData } from "@/modules/shared/lib/validation";
 import { PointsConversionSection } from "./PointsConversionSection";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://pro.cdhc.vn";
 
 // ===== TAB TYPE =====
 type TabType = "exchange" | "team" | "history";
@@ -129,7 +129,7 @@ export function CommunityDashboardClient() {
       }
       const message =
         err instanceof Error ? err.message : "Failed to load profile";
-      console.error("Error fetching profile:", err);
+      logger.error("Error fetching profile:", err);
       setError(message);
     } finally {
       setIsLoading(false);
@@ -182,7 +182,7 @@ export function CommunityDashboardClient() {
       if (err instanceof Error && err.name === "AbortError") {
         return;
       }
-      console.error("Error refreshing profile:", err);
+      logger.error("Error refreshing profile:", err);
     }
   }, []);
 
