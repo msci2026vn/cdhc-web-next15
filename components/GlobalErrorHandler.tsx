@@ -25,7 +25,7 @@ export function GlobalErrorHandler() {
       const stack = error?.stack || "";
       const message = error?.message || "";
 
-      // List of third-party scripts to suppress
+      // List of third-party scripts/errors to suppress
       const thirdPartyPatterns = [
         "onboarding.js",
         "gads-scrapper",
@@ -35,13 +35,20 @@ export function GlobalErrorHandler() {
         "gtag",
         "fbevents",
         "analytics",
+        // Browser translation extensions
+        "SOURCE_LANG_UI",
+        "EMPTY_TEXT",
+        "translate",
       ];
 
-      // Check if error is from third-party script
+      // Check if error is from third-party script or extension
+      // Also check error object properties for translation extension errors
+      const errorStr = JSON.stringify(error || {});
       const isThirdParty = thirdPartyPatterns.some(
         (pattern) =>
           stack.includes(pattern) ||
           message.includes(pattern) ||
+          errorStr.includes(pattern) ||
           error === undefined
       );
 
