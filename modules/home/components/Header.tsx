@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SecureStorage, type UserData } from "@/modules/shared";
 
 // ===== NAVIGATION DATA (moved outside to avoid recreation) =====
 const NAV_ITEMS = [
@@ -26,9 +27,21 @@ const MOBILE_NAV_ITEMS = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Ref to track if scroll handler is throttled
   const ticking = useRef(false);
+
+  // Check auth state on mount
+  useEffect(() => {
+    const checkAuth = () => {
+      const userData = SecureStorage.getUserSync();
+      setUser(userData);
+      setIsCheckingAuth(false);
+    };
+    checkAuth();
+  }, []);
 
   const hamburgerLineClass = `w-6 h-0.5 transition-all ${isScrolled ? "bg-slate-800" : "bg-white"}`;
 
@@ -113,12 +126,50 @@ export function Header() {
 
             {/* Actions */}
             <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/login"
-                className="px-5 py-2.5 text-sm font-semibold rounded-full gradient-primary text-white hover:shadow-lg transition-all"
-              >
-                Đăng nhập
-              </Link>
+              {isCheckingAuth ? (
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+              ) : user ? (
+                <Link
+                  href="/community/dashboard"
+                  className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                >
+                  <div className="text-right hidden lg:block">
+                    <div
+                      className={`text-sm font-semibold ${isScrolled ? "text-slate-900" : "text-white"}`}
+                    >
+                      {user.name}
+                    </div>
+                    <div
+                      className={`text-xs ${isScrolled ? "text-slate-500" : "text-white/70"}`}
+                    >
+                      Xem Dashboard
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-lg">
+                    {user.picture ? (
+                      <Image
+                        src={user.picture}
+                        alt={user.name}
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-white font-bold">
+                        {user.name?.charAt(0) || "U"}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-5 py-2.5 text-sm font-semibold rounded-full gradient-primary text-white hover:shadow-lg transition-all"
+                >
+                  Đăng nhập
+                </Link>
+              )}
             </div>
 
             {/* Mobile Toggle */}
@@ -161,12 +212,51 @@ export function Header() {
             </a>
           ))}
           <div className="flex flex-col gap-3 mt-4 pt-4 border-t">
-            <Link
-              href="/login"
-              className="w-full py-3 text-center font-semibold text-white gradient-primary rounded-full"
-            >
-              Đăng nhập
-            </Link>
+            {isCheckingAuth ? (
+              <div className="flex items-center gap-3 p-4">
+                <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse" />
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24 mb-2" />
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-32" />
+                </div>
+              </div>
+            ) : user ? (
+              <Link
+                href="/community/dashboard"
+                className="flex items-center gap-3 p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors"
+                onClick={handleCloseMobileMenu}
+              >
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-500 shadow-lg">
+                  {user.picture ? (
+                    <Image
+                      src={user.picture}
+                      alt={user.name}
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-white font-bold text-lg">
+                      {user.name?.charAt(0) || "U"}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-slate-900">
+                    {user.name}
+                  </div>
+                  <div className="text-sm text-green-600">Xem Dashboard →</div>
+                </div>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="w-full py-3 text-center font-semibold text-white gradient-primary rounded-full"
+              >
+                Đăng nhập
+              </Link>
+            )}
           </div>
         </nav>
       </div>
