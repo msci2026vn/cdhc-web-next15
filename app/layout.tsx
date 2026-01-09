@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { UpdateNotification } from "@/components/UpdateNotification";
 import { getCspHeaderValue } from "@/lib/csp-config";
 import { Providers } from "./providers";
@@ -81,6 +82,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Con Đường Hữu Cơ" />
       </head>
       <body className="bg-white text-slate-600">
+        <GlobalErrorHandler />
         <ErrorBoundary>
           <Providers>{children}</Providers>
         </ErrorBoundary>
