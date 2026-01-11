@@ -501,6 +501,11 @@ export default function LoginPage() {
         profile: profileData,
       };
 
+      // DEBUG: Log payload to see what's being sent
+      console.log("🔍 Registration payload:", JSON.stringify(payload, null, 2));
+      console.log("🔍 Profile data keys:", Object.keys(profileData));
+      console.log("🔍 Profile data:", profileData);
+
       const res = await fetch(`${API_URL}/api/auth/google/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -520,6 +525,10 @@ export default function LoginPage() {
           details?: Array<{ path?: string[]; message?: string }>;
         };
       };
+
+      // DEBUG: Log response
+      console.log("🔍 Response status:", res.status);
+      console.log("🔍 Response data:", data);
 
       // Handle specific HTTP errors
       if (res.status === 400) {
