@@ -25,7 +25,6 @@ import type {
   ShopFormData,
 } from "@/modules/shared/components/forms";
 import { SecureStorage } from "@/modules/shared/lib/secure-storage";
-import { hasRequiredProfileFields } from "@/modules/shared/lib/validation";
 
 // ===== DYNAMIC IMPORTS FOR CODE SPLITTING =====
 // Only load form components when needed (reduces initial bundle size)
@@ -486,15 +485,10 @@ export default function LoginPage() {
       return;
     }
 
-    // Type-safe validation for Community/Farmer roles
-    // These roles require fullName, province, and ward fields
-    if (
-      (selectedRole === "community" || selectedRole === "farmer") &&
-      !hasRequiredProfileFields(profileData)
-    ) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
-      return;
-    }
+    // REMOVED: Duplicate validation check that was blocking valid submissions
+    // Each form component (FarmerForm, CommunityForm, etc.) already validates
+    // required fields before calling onSubmit. Backend also validates.
+    // The hasRequiredProfileFields check was causing false negatives.
 
     setIsLoading(true);
     setError(null);
